@@ -22,42 +22,11 @@ class Trader:
         """
         # Initialize the method output dict as an empty dict
 
-
-        print_reconstruct(state)
-
-        self.products = state.order_depths.keys()
-
-        self._orders = {p: [] for p in self.products}
-
         print("-"*50)
-        print(f"START TURN: Time {state.timestamp}")
+        print(f"Round {state.timestamp}")
         print("-"*50)
 
-
-            
-        print("My Positions:")
-        for prod, pos in state.position.items():
-            print(f"\t{prod}: {pos}")
-
-        # print my trades
-        print("My Trades:")
-        for trade in state.own_trades.items():
-            print(f"\t{prod} {trade}")
-
-        print("Market Trades:")
-        for prod, trade in state.market_trades.items():
-            print(f"\t{prod} {trade}")
-
-        print("Listings:")
-        print(state.listings)
-
-        print("Order depths:")
-        print(state.order_depths)
-
-        print("Observations:")
-        for prod, obs in state.observations.items():
-            print(f"\t{prod} {obs}")
-
+        self.print_reconstruct(state)
 
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
@@ -112,8 +81,6 @@ class Trader:
 
         return self._orders
 
-
-
     def place_order(self, order: Order):
         self._orders[order.symbol] += [order]
 
@@ -121,9 +88,7 @@ class Trader:
 
 
 
-def print_reconstruct(state):
-    s = state.toJSON()
+    def print_reconstruct(self, state):
+        s = state.toJSON()
 
-    print(f"__mark\n{s}\n__end\n")
-
-    print("END OF TURN")
+        print(f"__json_start\n{s}\n_json_end\n")
