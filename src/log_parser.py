@@ -12,8 +12,10 @@ def process_file(fname):
 
 
     start_sep = "__mark"
-
     end_sep = "__end"
+    
+    # start_sep = "__json_start"
+    # end_sep = "__json_end"
 
     # split on start_sep
     splits = text.split(start_sep)
