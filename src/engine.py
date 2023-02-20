@@ -1,25 +1,25 @@
 from datamodel import *
-from game_settings import MAX_TIME, TIME_STEP
-from game_settings import PLAYERS
-from game_settings import PRODUCTS, SYMBOLS, LISTINGS
 
 import argparse
+import importlib
 import sys
 from pathlib import Path
 
 import traceback
 
 
-def main():
+def main(package: str):
     # init world state
+    GS = importlib.import_module(".game_settings", package=package)
+
 
     empty_book: Dict[Symbol, OrderDepth] = {
-        sym: OrderDepth() for sym in SYMBOLS
+        sym: OrderDepth() for sym in GS.SYMBOLS
     }
 
     state: TradingState = TradingState(
         timestamp=0,
-        listings=LISTINGS,
+        listings=GS.LISTINGS,
         order_depths=empty_book,
         own_trades={},
         market_trades={},
@@ -28,21 +28,21 @@ def main():
     )
 
     state.init_game(
-        products=PRODUCTS,
-        symbols=SYMBOLS,
-        listings=LISTINGS,
-        players=PLAYERS,
+        products=GS.PRODUCTS,
+        symbols=GS.SYMBOLS,
+        listings=GS.LISTINGS,
+        players=GS.PLAYERS,
     )
 
 
 
-    for cur_time in range(0, MAX_TIME, TIME_STEP):
+    for cur_time in range(0, GS.MAX_TIME, GS.TIME_STEP):
 
         eprint(f"Time: {cur_time}")
         state.timestamp = cur_time
 
 
-        for player in PLAYERS:
+        for player in GS.PLAYERS:
             
             # remove expired orders
             state.remove_player_orders(pid=player.player_id)
@@ -89,6 +89,7 @@ if __name__ == "__main__":
         description = 'This file runs the game.'
     )
 
+    parser.add_argument("-p", "--package", required=True)
     parser.add_argument("-lf", "--log_to_file", action="store_true")
 
     args = parser.parse_args()
@@ -96,16 +97,15 @@ if __name__ == "__main__":
     if args.log_to_file:
         log_file = Path("../replays/local.log")
 
-        print(f"Writing to {log_file}")
+        print(f"Writing to {log_file} ...")
 
-    
         with open(log_file, "w") as f:
             old_stdout, old_stderr = sys.stdout, sys.stderr
-
             sys.stdout, sys.stderr = f, f
-
             try:
-                main()
+                main(
+                    package=args.package
+                )
             except:
                 traceback.print_exc()
                 sys.stdout, sys.stderr = old_stdout, old_stderr
@@ -119,7 +119,8 @@ if __name__ == "__main__":
                 )
                 traceback.print_exc()
                 
-
     else:
-        print("Writing to stdout")
-        main()
+        print("Writing to stdout...")
+        main(
+            package=args.package
+        )

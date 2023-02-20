@@ -3,7 +3,7 @@ from datamodel import *
 
 """ constants """
 
-MAX_TIME = 200000
+MAX_TIME = 1000
 TIME_STEP = 100
 
 trader_position_limits : Dict[Product, int] = {
@@ -34,14 +34,13 @@ SYMBOLS = list(LISTINGS.keys())
 
 """ player parameters """
 
-from bots.trader_bot import Trader
-from bots.taker_bot import TakerBot
-from bots.maker_bot import MakerBot
+# from bots.trader_bot import Trader
+from .bots.test_taker_bot import TakerBot
+from .bots.test_maker_bot import MakerBot
 
 PLAYERS = [
-    TakerBot(player_id=100, position_limits=market_position_limits),
+    TakerBot(player_id=100, position_limits=trader_position_limits),
     MakerBot(player_id=200, position_limits=market_position_limits),
-    Trader(player_id=1717, position_limits=trader_position_limits),
 ]
 
 # players must have unique ids
