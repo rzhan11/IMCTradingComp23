@@ -6,15 +6,16 @@ import copy
 
 """ constants """
 
-MAX_TIME = 200000
+MAX_TIME = 500
 TIME_STEP = 100
 
 trader_position_limits : Dict[Product, int] = {
     "BANANAS": 20,
     "PEARLS": 20,
+    "SEASHELLS": float("inf")
 }
 
-market_position_limits = { k: 1e9 for k in trader_position_limits.keys() }
+market_position_limits = { k: float("inf") for k in trader_position_limits.keys() }
 
 listings : Dict[Symbol, Listing] = {
     "BANANAS": Listing(
@@ -35,8 +36,8 @@ symbols = list(listings.keys())
 """ player parameters """
 
 players = [
-    Trader(player_id=100, position_limits=trader_position_limits),
     Market(player_id=200, position_limits=market_position_limits),
+    Trader(player_id=100, position_limits=trader_position_limits),
 ]
 
 # players must have unique ids
@@ -69,15 +70,18 @@ def main():
 
 
 
-    for t in range(0, MAX_TIME, TIME_STEP):
+    for cur_time in range(0, MAX_TIME, TIME_STEP):
 
-        eprint(f"Time: {t}")
-        state.timestamp = t
+        eprint(f"Time: {cur_time}")
+        state.timestamp = cur_time
 
 
         for player in players:
             
-            state_player_copy = state.get_player_copy()
+            state_player_copy = state.get_player_copy(pid=player.player_id)
+
+            print(state._TradingState__books)
+            print(state_player_copy._TradingState__books)
 
             # run trader actions
             orders = player.run(state_player_copy)

@@ -2,6 +2,7 @@ import json
 from typing import Dict, List
 from json import JSONEncoder
 import bisect
+from abc import ABC
 
 import copy
 
@@ -94,16 +95,64 @@ class OrderDepth:
         self.sell_orders = {(k, id, is_trader): v for (k, id, is_trader), v in self.sell_orders if (not is_trader)}
 
 
-class BookOrder:
+class Trade:
+    def __init__(self, symbol: Symbol, price: int, quantity: int, buyer: UserId = "", seller: UserId = "") -> None:
+        self.symbol = symbol
+        self.price: int = price
+        self.quantity: int = quantity
+        self.buyer = buyer
+        self.seller = seller
+
+    def __str__(self) -> str:
+        return f"({self.symbol}, {self.buyer} << {self.seller}, {self.price}, {self.quantity})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def copy(self):
+        return Trade(
+            self.symbol,
+            self.price,
+            self.quantity,
+            self.buyer,
+            self.seller,
+        )
+
+""" custom classes """
+
+class BookOrder(ABC):
     def __init__(self, symbol : Symbol, price : int, quantity : int, order_id : OrderID, player_id : PlayerID):
          # book orders always have positive quantities
-        assert quantity > 0
+        assert quantity > 0, f"Bad BookOrder {symbol, price, quantity, order_id, player_id}"
 
         self.symbol = symbol
         self.price = price
         self.quantity = quantity
         self.order_id = order_id
         self.player_id = player_id
+        self.is_buy = None
+
+    def __str__(self) -> str:
+        if self.is_buy:
+            s = "BUY"
+        else:
+            s = "SELL"
+
+        return f"([{s}] {self.symbol}, ${self.price}, q: {self.quantity}, pid: {self.player_id}, oid: {self.order_id})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+
+    def copy_subclass(self, Constructor):
+        return Constructor(
+            symbol=self.symbol,
+            price=self.price,
+            quantity=self.quantity,
+            order_id=self.order_id,
+            player_id=self.player_id,
+        )
+
 
     def __eq__(self, other):
         return self.price == other.price and self.quantity == other.quantity
@@ -113,6 +162,9 @@ class BuyOrder(BookOrder):
         super().__init__(*args, **kwargs)
         self.is_buy = True
 
+    def copy(self):
+        return self.copy_subclass(BuyOrder)
+
     def __lt__(self, other):
         return self.price > other.price or (self.price == other.price and self.player_id < other.player_id)
 
@@ -121,6 +173,9 @@ class SellOrder(BookOrder):
         super().__init__(*args, **kwargs)
         self.is_buy = False
 
+    def copy(self):
+        return self.copy_subclass(SellOrder)
+
     def __lt__(self, other):
         return self.price < other.price or (self.price == other.price and self.player_id < other.player_id)
 
@@ -128,6 +183,18 @@ class Book:
     def __init__(self, buys: List[BuyOrder], sells: List[SellOrder]):
         self.buys = buys
         self.sells = sells
+
+    def __str__(self) -> str:
+        return f"(BIDS:{self.buys}, ASKS:{self.sells})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def copy(self):
+        return Book(
+            buys=[b.copy() for b in self.buys],
+            sells=[b.copy() for b in self.sells],
+        )
 
     def to_order_depth(self):
         od = OrderDepth()
@@ -143,28 +210,6 @@ class Book:
         self.sells = [ord for ord in self.sells if ord.player_id != pid]
 
 
-class Trade:
-    def __init__(self, symbol: Symbol, price: int, quantity: int, buyer: UserId = "", seller: UserId = "") -> None:
-        self.symbol = symbol
-        self.price: int = price
-        self.quantity: int = quantity
-        self.buyer = buyer
-        self.seller = seller
-
-    def __str__(self) -> str:
-        return "(" + self.symbol + ", " + self.buyer + " << " + self.seller + ", " + str(self.price) + ", " + str(self.quantity) + ")"
-
-    def __repr__(self) -> str:
-        return "(" + self.symbol + ", " + self.buyer + " << " + self.seller + ", " + str(self.price) + ", " + str(self.quantity) + ")"
-
-    def copy(self):
-        return Trade(
-            self.symbol,
-            self.price,
-            self.quantity,
-            self.buyer,
-            self.seller,
-        )
 
 
 
@@ -214,7 +259,16 @@ class TradingState(object):
         self.__products = products
         self.__symbols = symbols
         self.__listings = listings
-        self.__position_limits = {p.id : p.position_limits for p in players}
+        self.__position_limits = {p.player_id : p.position_limits for p in players}
+        self.__id_counter = 0
+
+        # init positions to 0
+        self.__positions = { 
+            p.player_id : {prod: 0 for prod in self.__products} 
+            for p in players
+        }
+
+        self.__books = {sym: Book(buys=[], sells=[]) for sym in symbols}
 
 
 
@@ -226,32 +280,6 @@ class TradingState(object):
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True)
 
-    def copy(self):
-        state = TradingState(
-            timestamp=self.timestamp,
-            listings={k: v.copy() for k, v in self.listings},
-            order_depths={},
-            own_trades={},
-            market_trades={},
-            position={},
-            observations={},
-        )
-        
-        # copy additional fields
-        state.__position_limits = { 
-            pid: copy.deepcopy(pos) 
-            for pid, pos in self.__position_limits.items() 
-        }
-        state.__positions = { 
-            pid: copy.deepcopy(pos) 
-            for pid, pos in self.__positions.items() 
-        }
-        state.__trades = [trade.copy() for trade in self.__trades]
-        state.__books = { sym: book.copy for sym, book in self.__books.items() }
-        state.__id_counter = self.__id_counter
-
-        return state
-
 
     def get_player_copy(self, pid : PlayerID):
         """ Returns a copy of this state for the specified player
@@ -260,20 +288,19 @@ class TradingState(object):
             pid (int): player id
         """
 
-        # make copy
-        self = self.copy()
+        # own_trades + market_trades
+        own_trades = {sym: [] for sym in self.__symbols}
+        market_trades = {sym: [] for sym in self.__symbols}
 
-
-        # create position
-        self.position = self.__positions[pid]
-        
         # create own_trades / market_trades
         for trade in self.__trades:
+            trade = trade.copy()
+
             # sort into own/market trades
             if trade.buyer == pid or trade.seller == pid:
-                self.own_trades[trade.symbol] = self.own_trades.get(trade.symbol, default=[]) + [trade]
+                own_trades[trade.symbol] += [trade]
             else:
-                self.market_trades[trade.symbol] = self.market_trades.get(trade.symbol, default=[]) + [trade]
+                market_trades[trade.symbol] += [trade]
 
             # remap the buyer/seller tags
             if trade.buyer == pid:
@@ -288,36 +315,44 @@ class TradingState(object):
 
 
         # create order_depths
+        order_depths = {}
         for sym, book in self.__books.items():
+            print("book end", book)
+            book = book.copy()
+
             # remove player orders
             book.remove_player_orders(pid)
-            self.order_depths[sym] = book.to_order_depth()
+            order_depths[sym] = book.to_order_depth()
+            
 
-        
+        state = TradingState(
+            timestamp=self.timestamp,
+            listings={sym : listing.copy() for sym, listing in self.__listings.items()},
+            order_depths=order_depths,
+            own_trades=own_trades,
+            market_trades=market_trades,
+            position=copy.deepcopy(self.__positions[pid]),
+            observations=copy.deepcopy({}),
+        )
 
-        # remove extraneous fields
-        del self.__positions
-        del self.__trades
-        del self.__books
-        del self.__id_counter
 
-        return self
+        return state
         
 
 
 
     # return a list of trader books
-    def apply_orders(self, pid, new_orders: Dict[Symbol, List[Order]]):
+    def apply_orders(self, pid, orders: Dict[Symbol, List[Order]]):
 
-        buy_total = {0 for prod in self.__products.keys()}
-        sell_total = {0 for prod in self.__products.keys()}
+        buy_order_total = {prod: 0 for prod in self.__products}
+        sell_order_total = {prod: 0 for prod in self.__products}
 
         limits = self.__position_limits[pid]
 
         allowed_orders: List[BookOrder] = []
 
-        for sym, orders in new_orders.items():
-            for ord in orders:
+        for sym, order_list in orders.items():
+            for ord in order_list:
                 assert ord.symbol == sym
                 assert(type(ord.quantity) == int)
 
@@ -327,19 +362,19 @@ class TradingState(object):
 
                 # if we would exceed the position limit, ignore this order
                 if ord.quantity > 0:
-                    if buy_total[prod] + ord.quantity > limits[prod]:
+                    if buy_order_total[prod] + ord.quantity > limits[prod]:
                         eprint("ERROR - Ignoring order {ord}")
                         works = False
                     else:
-                        buy_total[prod] += ord.quantity
+                        buy_order_total[prod] += ord.quantity
                 elif ord.quantity < 0:
-                    if sell_total[prod] + ord.quantity < -limits[prod]:
+                    if sell_order_total[prod] + ord.quantity < -limits[prod]:
                         eprint("ERROR - Ignoring order {ord}")
                         works = False
                     else:
-                        sell_total[prod] += ord.quantity
+                        sell_order_total[prod] += ord.quantity
                 else:
-                    # ord.quantity = 0
+                    # this means that ord.quantity = 0
                     works = False
                 
 
@@ -348,7 +383,7 @@ class TradingState(object):
                     allowed_orders += [ord.to_book_order(order_id=self.fresh_order_id(), player_id=pid)]
 
         # match allowed orders against the book
-        self.match_orders(pid=pid, orders=allowed_orders)
+        self.match_orders(orders=allowed_orders)
 
 
 
@@ -356,17 +391,19 @@ class TradingState(object):
     def match_orders(self, orders: List[BookOrder]):
         new_trades: List[Trade] = []
 
+        print("match start", self.__books)
+
         # match against the book
         for ord in orders:
             if ord.is_buy: # trader buys, match against sellers
                 sells = self.__books[ord.symbol].sells
                 new_sells = []
-                for book_ind, book_ord in sells:
+                for book_ind, book_ord in enumerate(sells):
                     if ord.price >= book_ord.price:
                         trade_size = min(book_ord.quantity, ord.quantity)
 
                         # record trade 
-                        new_trades += [Trade(ord.symbol, ord.price, trade_size, buyer=orders.player_id, seller=book_ord.player_id)]
+                        new_trades += [Trade(ord.symbol, ord.price, trade_size, buyer=ord.player_id, seller=book_ord.player_id)]
 
                         # update order
                         ord.quantity -= trade_size
@@ -387,18 +424,18 @@ class TradingState(object):
                 # want to buy, add as order
                 if ord.quantity != 0:
                     buys = self.__books[ord.symbol].buys
-                    self.__books[ord.symbol].buys = bisect.insort(buys, ord)
+                    bisect.insort(buys, ord) # modifies in-place
 
 
             else: # trader sells, match against buyers
                 buys = self.__books[ord.symbol].buys
                 new_buys = []
-                for book_ind, book_ord in buys:
-                    if ord.price >= book_ord.price:
+                for book_ind, book_ord in enumerate(buys):
+                    if ord.price <= book_ord.price: # sell for less than buy price
                         trade_size = min(book_ord.quantity, ord.quantity)
 
                         # record trade 
-                        new_trades += [Trade(ord.symbol, ord.price, trade_size, buyer=orders.player_id, seller=book_ord.player_id)]
+                        new_trades += [Trade(ord.symbol, ord.price, trade_size, buyer=book_ord.player_id, seller=ord.player_id)]
 
                         # update order
                         ord.quantity -= trade_size
@@ -419,7 +456,20 @@ class TradingState(object):
                 # want to buy, add as order
                 if ord.quantity != 0:
                     sells = self.__books[ord.symbol].sells
-                    self.__books[ord.symbol].sells = bisect.insort(sells, ord)
+                    bisect.insort(sells, ord) # modifies in-place
+
+        # update positions based on trades
+        for t in new_trades:
+            prod = self.__listings[t.symbol].product
+            self.__positions[t.buyer][prod] += t.quantity
+            self.__positions[t.buyer]["SEASHELLS"] -= t.quantity * t.price
+            self.__positions[t.seller][prod] -= t.quantity
+            self.__positions[t.seller]["SEASHELLS"] += t.quantity * t.price
+
+
+        print("match end", self.__books)
+        print("match end trades", new_trades)
+
 
         # add trades to state
         self.__trades += new_trades
