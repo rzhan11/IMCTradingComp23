@@ -1,0 +1,20 @@
+virginia-return03t.l2 positive helped deal with returns in if statements initializing variables 
+alaska-shift-exception.l2 positive helped find bug in throwing shifting exception (not deal with second case properly)
+abra-return-ternary.l2 positive found issue in ternary operator (precedent was not correct )
+apollo-return-short-circuiting.l2 positive showed us to do short circuiting for && and || operators 
+thorin-002-return.l2 positive good test of ternary operator 
+alaska-compare2.l2 positive helped us figure out a bug in our boolean operators 
+if02.l2 positive good at testing initialization 
+if01.l2 positive gosod at testing initialization
+squirtle-test-precedence.l2 positive good at testing precedence 
+starlord-ternary-2.l2 positive good at testing ternary 
+alliser-yam-09-bottomless.l2 negative the test results aren't in the writeup
+voyager-test6 2.l2 negative repetitive test 
+vision-return-07.l2 negative repetitive shift test 
+tennesee-return07.2.l2 negative repetitive
+jango-1_can_you_if.l2 negative repetitive
+anakin-err1.l2 negative repetitive
+bb-8-return-1.l2 negative repetitive 
+berllium-error01.l2 negative repetitive 
+buckbeak-test20.l2 negative repetitive
+cobalt-test_return04.l2 negative repetitive
