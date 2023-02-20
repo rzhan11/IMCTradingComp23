@@ -71,6 +71,8 @@ def main(package: str):
             # remove expired trades (from last turn)
             state.remove_player_trades(pid=player.player_id)
 
+            state.validate()
+
 
 
     print("\n"*5)

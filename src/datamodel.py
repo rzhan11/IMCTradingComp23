@@ -283,6 +283,7 @@ class TradingState(object):
         self.observations = observations
 
         """ extra fields """
+        self.__pids : List[PlayerID] = []
         self.__position_limits : Dict[PlayerID, Dict[Product, int]] = {}
         self.__positions : Dict[PlayerID, Dict[Product, int]] = {}
         self.__trades : List[Trade] = []
@@ -302,13 +303,14 @@ class TradingState(object):
         self.__products = products
         self.__symbols = symbols
         self.__listings = listings
+        self.__pids = [p.player_id for p in players]
         self.__position_limits = {p.player_id : p.position_limits for p in players}
         self.__id_counter = 0
 
         # init positions to 0
         self.__positions = { 
-            p.player_id : {prod: 0 for prod in self.__products} 
-            for p in players
+            pid : {prod: 0 for prod in self.__products} 
+            for pid in self.__pids
         }
 
         self.__books = {sym: Book(buys=[], sells=[]) for sym in symbols}
@@ -451,14 +453,14 @@ class TradingState(object):
                 if ord.quantity > 0:
                     new_quantity = position[prod] + buy_order_total[prod] + ord.quantity
                     if new_quantity > limits[prod]:
-                        eprint("ERROR - Ignoring order {ord}")
+                        eprint(f"ERROR - Ignoring order {ord}")
                         works = False
                     else:
                         buy_order_total[prod] += ord.quantity
                 elif ord.quantity < 0:
                     new_quantity = position[prod] + sell_order_total[prod] + ord.quantity
                     if new_quantity < -limits[prod]:
-                        eprint("ERROR - Ignoring order {ord}")
+                        eprint(f"ERROR - Ignoring order {ord}")
                         works = False
                     else:
                         sell_order_total[prod] += ord.quantity
@@ -552,6 +554,32 @@ class TradingState(object):
         # add trades to state
         self.__trades += new_trades
 
+
+    def validate_position_limits(self):
+        """ Ensures that all players are following position limits
+        """
+
+        for pid, all_pos in self.__positions.items():
+            for prod, pos in all_pos.items():
+                limit = self.__position_limits[pid][prod]
+                assert -limit <= pos <= limit, f"Player {pid} has illegal position in {prod}, cur: {pos}, limit: {limit}"
+
+
+    def validate_position_totals(self):
+        """ Ensures that all positions add up to 0
+        """
+
+        for prod in self.__products:
+            total = 0
+            for pid in self.__pids:
+                total += self.__positions[pid][prod]
+
+            assert total == 0, f"{prod} has nonzero total: {total}"
+
+    
+    def validate(self):
+        self.validate_position_limits()
+        self.validate_position_totals()
 
     
     
