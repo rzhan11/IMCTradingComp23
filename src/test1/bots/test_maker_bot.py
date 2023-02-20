@@ -93,11 +93,105 @@ class MakerBot(AbstractBot):
 
 
     def run_unit_test(self, state):
+        _me = "SUBMISSION"
+
+        exp_listings = {
+            "BANANAS": Listing(
+                symbol = "BANANAS",
+                product = "BANANAS",
+                denomination = 1,
+            ),
+            "PEARLS": Listing(
+                symbol = "PEARLS",
+                product = "PEARLS",
+                denomination = 1,
+            ),
+        }
+
+
         if state.timestamp == 0:
-            pass
+            order_depths = { 
+                "BANANAS": OrderDepth(), 
+                "PEARLS": OrderDepth()
+            }
+            own_trades = { 
+                "BANANAS": [], 
+                "PEARLS": [] 
+            }
+            market_trades = { 
+                "BANANAS": [], 
+                "PEARLS": [] 
+            }
+            position = { 
+                "BANANAS": 0, 
+                "PEARLS": 0
+            }
         elif state.timestamp == 100:
-            pass
+            order_depths = {
+                "BANANAS": OrderDepth(
+                    buy_orders={},
+                    sell_orders={},
+                ),
+                "PEARLS": OrderDepth(
+                    buy_orders={},
+                    sell_orders={},
+                ),
+            }
+            own_trades = { 
+                "BANANAS": [
+                    Trade("BANANAS", 4990, 2, buyer=_me, timestamp=100),
+                ], 
+                "PEARLS": [
+                    Trade("PEARLS", 9990, 2, buyer=_me, timestamp=100),
+                ] 
+            }
+            market_trades = { 
+                "BANANAS": [], 
+                "PEARLS": [],
+            }
+            position = { 
+                "BANANAS": 2, 
+                "PEARLS": 2,
+            }
         elif state.timestamp == 200:
-            pass
+            order_depths = {
+                "BANANAS": OrderDepth(
+                    buy_orders={},
+                    sell_orders={},
+                ),
+                "PEARLS": OrderDepth(
+                    buy_orders={},
+                    sell_orders={},
+                ),
+            }
+            own_trades = { 
+                "BANANAS": [], 
+                "PEARLS": [
+                    Trade("PEARLS", 10100, 2, seller=_me, timestamp=200),
+                    Trade("PEARLS", 10100, 2, seller=_me, timestamp=200),
+                ], 
+            }
+            market_trades = { 
+                "BANANAS": [], 
+                "PEARLS": [] 
+            }
+            position = { 
+                "BANANAS": 2, 
+                "PEARLS": -2,
+            }
         else:
-            assert False, "unexpected timestamp"
+            assert False, f"unexpected timestamp {state.timestamp}"
+
+
+
+        exp_state = TradingState(
+            timestamp=state.timestamp,
+            listings=exp_listings,
+            order_depths=order_depths,
+            own_trades=own_trades,
+            market_trades=market_trades,
+            position=position,
+            observations={},
+        )
+
+        self.eval_unit_test(state, exp_state)
