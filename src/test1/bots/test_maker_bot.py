@@ -1,15 +1,13 @@
 import pandas as pd
 import numpy as np
 import json
-import random
-
-random.seed(1)
 
 from typing import Dict, List
-from datamodel import OrderDepth, TradingState, Order, Symbol
+from datamodel import OrderDepth, TradingState, Order, Trade, Listing, Symbol
+from .abstract_bot import AbstractBot
 
 
-class MakerBot:
+class MakerBot(AbstractBot):
 
     def __init__(self, 
             player_id=None, 
@@ -24,12 +22,14 @@ class MakerBot:
         self._buy_orders = {sym: [] for sym in state.listings.keys()}
         self._sell_orders = {sym: [] for sym in state.listings.keys()}
 
+        self.run_unit_test(state)
 
     def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
         """
         Only method required. It takes all buy and sell orders for all symbols as an input,
         and outputs a list of orders to be sent
         """
+
         # Initialize the method output dict as an empty dict
         self.turn_start(state)
 
@@ -43,9 +43,20 @@ class MakerBot:
 
     def run_internal(self, state):
 
-        self.make_market("PEARLS", 10000, 10, 2)
-        
-        self.make_market("BANANAS", 5000, 5, 2)
+        if state.timestamp == 0:
+            self.make_market("PEARLS", 10000, 10, 2)
+            self.make_market("BANANAS", 5000, 10, 2)
+        elif state.timestamp == 100:
+            # test order coalescing
+            self.make_market("PEARLS", 10000, 100, 2)
+            self.make_market("PEARLS", 10000, 100, 2)
+            pass
+        elif state.timestamp == 200:
+            pass
+            # self.make_market("PEARLS", 10000, 100, 2)
+            # self.make_market("BANANAS", 10000, 100, 2)
+        else:
+            assert False, f"run_internal - unexpected timestamp, {state.timestamp}"
 
 
 
@@ -81,5 +92,12 @@ class MakerBot:
         return {sym: self._buy_orders[sym] + self._sell_orders[sym] for sym in self._buy_orders.keys()}
 
 
-    def _unit_test(self, state):
-        pass
+    def run_unit_test(self, state):
+        if state.timestamp == 0:
+            pass
+        elif state.timestamp == 100:
+            pass
+        elif state.timestamp == 200:
+            pass
+        else:
+            assert False, "unexpected timestamp"

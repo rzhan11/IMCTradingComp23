@@ -3,7 +3,7 @@ from datamodel import *
 
 """ constants """
 
-MAX_TIME = 1000
+MAX_TIME = 200 + 1
 TIME_STEP = 100
 
 trader_position_limits : Dict[Product, int] = {
@@ -39,8 +39,8 @@ from .bots.test_taker_bot import TakerBot
 from .bots.test_maker_bot import MakerBot
 
 PLAYERS = [
-    TakerBot(player_id=100, position_limits=trader_position_limits),
-    MakerBot(player_id=200, position_limits=market_position_limits),
+    TakerBot(player_id=100, position_limits=market_position_limits),
+    MakerBot(player_id=200, position_limits=trader_position_limits),
 ]
 
 # players must have unique ids

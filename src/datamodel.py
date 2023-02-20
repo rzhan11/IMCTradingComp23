@@ -22,6 +22,11 @@ class Listing:
         self.product = product
         self.denomination = denomination
 
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+    
     def copy(self):
         return Listing(
             self.symbol,
@@ -41,6 +46,11 @@ class Order:
 
     def __repr__(self) -> str:
         return "(" + self.symbol + ", " + str(self.price) + ", " + str(self.quantity) + ")"
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
 
     def copy(self):
         return Order(
@@ -71,15 +81,26 @@ class Order:
     
 
 class OrderDepth:
-    def __init__(self):
-        self.buy_orders: Dict[int, int] = {}
-        self.sell_orders: Dict[int, int] = {}
+    def __init__(self, buy_orders={}, sell_orders={}):
+        self.buy_orders: Dict[int, int] = buy_orders
+        self.sell_orders: Dict[int, int] = sell_orders
+
+    def __str__(self) -> str:
+        return f"(BIDS:{self.buy_orders}, ASKS:{self.sell_orders})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
 
     def copy(self):
-        od = OrderDepth()
-        od.buy_orders = copy.deepcopy(self.buy_orders)
-        od.sell_orders= copy.deepcopy(self.sell_orders)
-        return od
+        return OrderDepth(
+            buy_orders=copy.deepcopy(self.buy_orders),
+            sell_orders=copy.deepcopy(self.sell_orders),
+        )
 
 
 class Trade:
@@ -105,6 +126,11 @@ class Trade:
 
     def __repr__(self) -> str:
         return str(self)
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
 
     def copy(self):
         return Trade(
@@ -205,10 +231,18 @@ class Book:
         )
 
     def to_order_depth(self):
-        od = OrderDepth()
-        od.buy_orders = {k.price: k.quantity for k in self.buys}
-        od.sell_orders = {k.price: k.quantity for k in self.sells}
-        return od
+        buy_orders = {}
+        for order in self.buys:
+            buy_orders[order.price] = buy_orders.get(order.price, 0) + order.quantity
+
+        sell_orders = {}
+        for order in self.sells:
+            sell_orders[order.price] = sell_orders.get(order.price, 0) + order.quantity
+        
+        return OrderDepth(
+            buy_orders=buy_orders,
+            sell_orders=sell_orders,
+        )
 
     def remove_player_orders(self, pid):
         """
@@ -279,6 +313,11 @@ class TradingState(object):
 
         self.__books = {sym: Book(buys=[], sells=[]) for sym in symbols}
 
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
 
 
     def fresh_order_id(self):
@@ -369,6 +408,7 @@ class TradingState(object):
         
 
     def clean(self):
+
         # cleanup trades
         for sym, trade_list in self.own_trades.items():
             for trade in trade_list:

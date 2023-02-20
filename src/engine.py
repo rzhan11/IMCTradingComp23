@@ -46,7 +46,7 @@ def main(package: str):
             
             # remove expired orders
             state.remove_player_orders(pid=player.player_id)
-            state.remove_player_trades(pid=player.player_id)
+            # state.remove_player_trades(pid=player.player_id)
             state_player_copy = state.get_player_copy(pid=player.player_id)
 
             eprint("Books:")
