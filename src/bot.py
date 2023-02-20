@@ -14,8 +14,9 @@ MAX_POS = {
 
 class Trader:
 
-    def __init__(self):
+    def __init__(self, player_id=-1):
         self.turn = -1
+        self.player_id = player_id
 
         pass
 

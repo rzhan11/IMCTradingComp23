@@ -4,7 +4,43 @@ from bot import Trader
 from market import Market
 import copy
 
+""" constants """
 
+MAX_TIME = 200000
+TIME_STEP = 100
+
+trader_position_limits : Dict[Product, int] = {
+    "BANANAS": 20,
+    "PEARLS": 20,
+}
+
+market_position_limits = { k: 1e9 for k in trader_position_limits.keys() }
+
+listings : Dict[Symbol, Listing] = {
+    "BANANAS": Listing(
+        symbol = "BANANAS",
+        product = "BANANAS",
+        denomination = 1,
+    ),
+    "PEARLS": Listing(
+        symbol = "PEARLS",
+        product = "PEARLS",
+        denomination = 1,
+    ),
+}
+
+products = list(trader_position_limits.keys())
+symbols = list(listings.keys())
+
+""" player parameters """
+
+players = [
+    Trader(player_id=100, position_limits=trader_position_limits),
+    Market(player_id=200, position_limits=market_position_limits),
+]
+
+# players must have unique ids
+assert len(players) == len(set([p.player_id for p in players])), "Player ids not unique"
 
 
 def main():
@@ -23,99 +59,34 @@ def main():
         position={},
         observations={},
     )
-    state.label_papers()
+
+    state.init_game(
+        products=products,
+        symbols=symbols,
+        listings=listings,
+        players=players,
+    )
 
 
-    trader = Trader()
-    market = Market()
 
     for t in range(0, MAX_TIME, TIME_STEP):
 
-        print(f"Engine time: {t}")
+        eprint(f"Time: {t}")
         state.timestamp = t
 
-        # run market actions
-        market.run(state)
 
-        # cleanup trader actions
-        state.clear_trader_orders()
-        state.unlabel_papers()
-
-        # run trader actions
-        trader_actions = trader.run(state.copy())
-        trader_actions = {k: [el.copy() for el in v] for k, v in trader_actions.items()}
-
-        # label papers
-        state.label_papers(1)
-
-        # reset trades
-        state.own_trades = {}
-        state.market_trades = {}
-
-        print("Trader actions", trader_actions)
-        # add trader actions to book
-
-
-        # apply trades to trader actions
-        apply_trader_actions(state, trader_actions)
-
-
-
-
-
-
-def eprint(*args, **kwargs):
-    print("[ENG]", *args, **kwargs)
-
-
-def is_trader_order(order : List[int]):
-    pass
-
-
-def remove_trader_actions(state):
-    pass
-
-
-# return a list of trader books
-def apply_trader_actions(state : TradingState, trader_actions: Dict[Symbol, List[Order]]):
-
-    trader_buy_limit = copy.deepcopy(state.position)
-    trader_sell_limit = copy.deepcopy(state.position)
-
-    all_orders: List[Order] = []
-
-    for sym, orders in trader_actions.items():
-        for ord in orders:
-            assert ord.symbol == sym
-            assert(type(ord.quantity) == int)
-
-            prod = listings[sym].product
+        for player in players:
             
-            works = True
+            state_player_copy = state.get_player_copy()
 
-            # if we would exceed the position limit, ignore this order
-            if ord.quantity > 0:
-                if trader_buy_limit[prod] + ord.quantity > max_positions[prod]:
-                    eprint("ERROR - Ignoring order {ord}")
-                    works = False
-                else:
-                    trader_buy_limit[prod] += ord.quantity
-            elif ord.quantity < 0:
-                if trader_sell_limit[prod] + ord.quantity < -max_positions[prod]:
-                    eprint("ERROR - Ignoring order {ord}")
-                    works = False
-                else:
-                    trader_sell_limit[prod] += ord.quantity
+            # run trader actions
+            orders = player.run(state_player_copy)
+            orders = {k: [el.copy() for el in v] for k, v in orders.items()}
 
-            # record successful order
-            if works:
-                all_orders += [ord]
+            eprint(f"Player {player.player_id} orders:", orders)
 
-    state.match_orders(all_orders, is_trader=True)
-
-    return all_orders
-
-
+            # apply trades to trader actions
+            state.apply_orders(pid=player.player_id, orders=orders)
 
 
 
