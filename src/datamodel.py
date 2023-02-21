@@ -303,8 +303,8 @@ class TradingState(object):
         self.__products = products
         self.__symbols = symbols
         self.__listings = listings
-        self.__pids = [p.player_id for p in players]
-        self.__position_limits = {p.player_id : p.position_limits for p in players}
+        self.__pids = [p._player_id for p in players]
+        self.__position_limits = {p._player_id : p._position_limits for p in players}
         self.__id_counter = 0
 
         # init positions to 0

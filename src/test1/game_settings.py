@@ -34,6 +34,12 @@ SYMBOLS = list(LISTINGS.keys())
 
 """ player parameters """
 
+from .fair import Fair
+
+FAIR = Fair(
+    products=PRODUCTS,
+)
+
 # from bots.trader_bot import Trader
 from .bots.test_taker_bot import TakerBot
 from .bots.test_maker_bot import MakerBot
@@ -44,4 +50,4 @@ PLAYERS = [
 ]
 
 # players must have unique ids
-assert len(PLAYERS) == len(set([p.player_id for p in PLAYERS])), "Player ids not unique"
+assert len(PLAYERS) == len(set([p._player_id for p in PLAYERS])), "Player ids not unique"

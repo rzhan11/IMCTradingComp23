@@ -19,8 +19,8 @@ class Trader:
             position_limits=None):
 
         self.turn = -1
-        self.player_id = player_id
-        self.position_limits = position_limits
+        self._player_id = player_id
+        self._position_limits = position_limits
 
     def turn_start(self, state):
         self.turn += 1

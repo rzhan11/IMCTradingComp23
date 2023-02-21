@@ -12,6 +12,8 @@ def main(package: str):
     # init world state
     GS = importlib.import_module(".game_settings", package=package)
 
+    fair_obj = GS.FAIR
+
 
     empty_book: Dict[Symbol, OrderDepth] = {
         sym: OrderDepth() for sym in GS.SYMBOLS
@@ -36,18 +38,20 @@ def main(package: str):
 
 
 
-    for cur_time in range(0, GS.MAX_TIME, GS.TIME_STEP):
+    for cur_turn, cur_time in enumerate(range(0, GS.MAX_TIME, GS.TIME_STEP)):
 
-        eprint(f"Time: {cur_time}")
+        eprint(f"Time: {cur_time}, Turn: {cur_turn}")
         state.timestamp = cur_time
 
+        fair_obj.update_fairs(timestamp=cur_time, turn=cur_turn)
 
         for player in GS.PLAYERS:
+
+            pid = player._player_id
             
             # remove expired orders
-            state.remove_player_orders(pid=player.player_id)
-            # state.remove_player_trades(pid=player.player_id)
-            state_player_copy = state.get_player_copy(pid=player.player_id)
+            state.remove_player_orders(pid=pid)
+            state_player_copy = state.get_player_copy(pid=pid)
 
             eprint("Books:")
             for sym, book in state._TradingState__books.items():
@@ -62,25 +66,40 @@ def main(package: str):
             orders = player.run(state_player_copy)
             orders = {k: [el.copy() for el in v] for k, v in orders.items()}
 
-            eprint(f"Player {player.player_id} orders:", orders)
+            eprint(f"Player {pid} orders:", orders)
 
             # apply trades to trader actions
-            state.apply_orders(pid=player.player_id, orders=orders)
+            state.apply_orders(pid=pid, orders=orders)
 
 
             # remove expired trades (from last turn)
-            state.remove_player_trades(pid=player.player_id)
+            state.remove_player_trades(pid=pid)
 
             state.validate()
 
 
 
-    print("\n"*5)
+    # caclculate pnls
+    pnls = {}
 
+    fairs = fair_obj.fairs
     final_positions = state.get_positions()
+
+    for player, all_pos in final_positions.items():
+        pnls[player] = 0
+        for prod, pos in all_pos.items():
+            pnls[player] += pos * fairs[prod]
+
+
+    # print pnls
+    print("\n"*5)
     eprint("Final positions:")
-    for player, pos in final_positions.items():
-        eprint(player, pos)
+    for player, all_pos in final_positions.items():
+        eprint(f"{player}, pnl: {pnls[player]}, {all_pos}")
+
+    
+
+
 
 
 

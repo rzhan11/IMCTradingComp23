@@ -11,11 +11,13 @@ class MakerBot(AbstractBot):
 
     def __init__(self, 
             player_id=None, 
-            position_limits=None):
+            position_limits=None,
+            fair_obj=None):
 
         self.turn = -1
-        self.player_id = player_id
-        self.position_limits = position_limits
+        self._player_id = player_id
+        self._position_limits = position_limits
+        self._fair_obj = fair_obj
 
     def turn_start(self, state):
         self.turn += 1
