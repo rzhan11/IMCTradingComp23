@@ -1,1 +1,1 @@
-python engine.py -p standard
+python engine.py -p standard -lf
