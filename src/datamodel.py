@@ -282,16 +282,17 @@ class TradingState(object):
         self.position = position
         self.observations = observations
 
-        """ extra fields """
-        self.__pids : List[PlayerID] = []
-        self.__position_limits : Dict[PlayerID, Dict[Product, int]] = {}
-        self.__positions : Dict[PlayerID, Dict[Product, int]] = {}
-        self.__trades : List[Trade] = []
-        self.__books : Dict[Symbol, Book] = {}
-        self.__id_counter : int = 0
+        # """ extra fields """
+        # self.__pids : List[PlayerID] = None
+        # self.__position_limits : Dict[PlayerID, Dict[Product, int]] = None
+        # self.__positions : Dict[PlayerID, Dict[Product, int]] = None
+        # self.__trades : List[Trade] = None
+        # self.__books : Dict[Symbol, Book] = None
+        # self.__id_counter : int = None
+        # self.__fairs = None
 
 
-    def init_game(self, products, symbols, listings, players):
+    def init_game(self, products, symbols, listings, players, fairs):
         """ Initializes game state, should be called once per game
 
         Args:
@@ -300,20 +301,23 @@ class TradingState(object):
             listings (_type_): _description_
             players (_type_): _description_
         """
-        self.__products = products
-        self.__symbols = symbols
-        self.__listings = listings
-        self.__pids = [p._player_id for p in players]
-        self.__position_limits = {p._player_id : p._position_limits for p in players}
-        self.__id_counter = 0
+        self.__id_counter : int = 0
+        self.__products : List[PlayerID] = products
+        self.__symbols : List[Symbol] = symbols
+        self.__listings : List[Listing] = listings
+        self.__fairs = fairs
 
+        self.__trades : List[Trade] = []
+        self.__books : Dict[Symbol, Book] = {sym: Book(buys=[], sells=[]) for sym in symbols}
+
+        self.__pids : List[PlayerID] = [p._player_id for p in players]
+        self.__position_limits : Dict[PlayerID, Dict[Product, int]] = {p._player_id : p._position_limits for p in players}
         # init positions to 0
-        self.__positions = { 
+        self.__positions : Dict[PlayerID, Dict[Product, int]] = { 
             pid : {prod: 0 for prod in self.__products} 
             for pid in self.__pids
         }
 
-        self.__books = {sym: Book(buys=[], sells=[]) for sym in symbols}
 
 
     def __eq__(self, other):
@@ -347,7 +351,19 @@ class TradingState(object):
             if not trade.is_expired(cur_timestamp=self.timestamp, cur_pid=pid)
         ]
 
+    def update_fairs(self, turn : int):
+        self.__fairs.update_fairs(timestamp=self.timestamp, turn=turn)
 
+    def get_pnls(self) -> Dict[PlayerID, int]:
+
+        pnls = {}
+
+        for player, all_pos in self.__positions.items():
+            pnls[player] = 0
+            for prod, pos in all_pos.items():
+                pnls[player] += pos * self.__fairs.fairs[prod]
+
+        return pnls
 
 
     def get_player_copy(self, pid : PlayerID):
@@ -420,12 +436,20 @@ class TradingState(object):
             for trade in trade_list:
                 trade.clean()
 
+
         # cleanup state
-        del self.__positions
-        del self.__position_limits
-        del self.__trades
-        del self.__books
-        del self.__id_counter
+        # del self.__id_counter
+        # del self.__products
+        # del self.__symbols
+        # del self.__listings
+        # del self.__fairs
+
+        # del self.__trades
+        # del self.__books
+
+        # del self.__pids
+        # del self.__position_limits
+        # del self.__positions
 
 
 

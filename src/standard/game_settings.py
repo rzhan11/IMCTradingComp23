@@ -3,7 +3,7 @@ from datamodel import *
 
 """ constants """
 
-MAX_TIME = 200000
+MAX_TIME = 1000
 TIME_STEP = 100
 
 trader_position_limits : Dict[Product, int] = {

@@ -12,8 +12,6 @@ def main(package: str):
     # init world state
     GS = importlib.import_module(".game_settings", package=package)
 
-    fair_obj = GS.FAIR
-
 
     empty_book: Dict[Symbol, OrderDepth] = {
         sym: OrderDepth() for sym in GS.SYMBOLS
@@ -34,16 +32,16 @@ def main(package: str):
         symbols=GS.SYMBOLS,
         listings=GS.LISTINGS,
         players=GS.PLAYERS,
+        fairs=GS.FAIR,
     )
-
-
 
     for cur_turn, cur_time in enumerate(range(0, GS.MAX_TIME, GS.TIME_STEP)):
 
         eprint(f"Time: {cur_time}, Turn: {cur_turn}")
+        eprint(f"PNLS: {state.get_pnls()}")
         state.timestamp = cur_time
 
-        fair_obj.update_fairs(timestamp=cur_time, turn=cur_turn)
+        state.update_fairs(turn=cur_turn)
 
         for player in GS.PLAYERS:
 
@@ -80,16 +78,8 @@ def main(package: str):
 
 
     # caclculate pnls
-    pnls = {}
-
-    fairs = fair_obj.fairs
+    pnls = state.get_pnls()
     final_positions = state.get_positions()
-
-    for player, all_pos in final_positions.items():
-        pnls[player] = 0
-        for prod, pos in all_pos.items():
-            pnls[player] += pos * fairs[prod]
-
 
     # print pnls
     print("\n"*5)
