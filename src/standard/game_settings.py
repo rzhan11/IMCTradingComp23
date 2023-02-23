@@ -3,7 +3,7 @@ from datamodel import *
 
 """ constants """
 
-MAX_TIME = 100000
+MAX_TIME = 200000
 TIME_STEP = 100
 
 trader_position_limits : Dict[Product, int] = {
@@ -26,6 +26,18 @@ LISTINGS : Dict[Symbol, Listing] = {
         denomination = 1,
     ),
 }
+# LISTINGS : Dict[Symbol, Dict] = {
+#     "BANANAS": {
+#         "symbol": "BANANAS",
+#         "product": "BANANAS",
+#         "denomination": 1,
+#     },
+#     "PEARLS": {
+#         "symbol": "PEARLS",
+#         "product": "PEARLS",
+#         "denomination": 1,
+#     },
+# }
 
 PRODUCTS = list(trader_position_limits.keys())
 SYMBOLS = list(LISTINGS.keys())

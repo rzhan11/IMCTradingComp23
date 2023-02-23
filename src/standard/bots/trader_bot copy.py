@@ -53,15 +53,14 @@ class Trader:
         Only method required. It takes all buy and sell orders for all symbols as an input,
         and outputs a list of orders to be sent
         """
-        # Initialize the method output dict as an empty dict
         self.turn_start(state)
 
-        self.run_internal(state)
-
-        my_orders = self.get_orders()
-        print("My orders", my_orders)
-        self.finish_turn += 1
-        return my_orders
+        return {
+            "PEARLS": [
+                Order(symbol="PEARLS", price=9999, quantity=-1),
+                Order(symbol="PEARLS", price=10000, quantity=1),
+            ]
+        }
 
     def fix_position(self, state: TradingState):
         """
