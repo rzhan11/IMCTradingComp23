@@ -52,6 +52,7 @@ class MakerBot:
                 continue
             
             self.make_market(prod, int(value), 10, 2)
+            self.make_market(prod, int(value), 100, 20)
 
 
 

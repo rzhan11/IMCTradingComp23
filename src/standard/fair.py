@@ -22,13 +22,13 @@ class Fair:
         }
 
         self.vols = {
-            "BANANAS": 0.25,
+            "BANANAS": 1 / 100,
             "PEARLS": 0,
         }
 
         self._update_func = self.update_lognormal
 
-        self.vol_turns = 1000
+        self.vol_turns = 100
 
         # do not update these values
         self.constant_set = {"SEASHELLS"}
@@ -46,7 +46,7 @@ class Fair:
 
         change = np.random.lognormal(
             mean=0, 
-            sigma=vol * 1 / self.vol_turns
+            sigma=vol * 1 / np.sqrt(self.vol_turns)
         )
 
         self.value[prod] = value * change

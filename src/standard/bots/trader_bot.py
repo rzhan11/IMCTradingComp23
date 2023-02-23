@@ -3,7 +3,7 @@ import numpy as np
 import json
 
 from typing import Dict, List
-from datamodel import OrderDepth, TradingState, Order, Symbol, Listing
+from datamodel import OrderDepth, TradingState, Order, Symbol, Listing, Product
 
 
 MAX_POS = {
@@ -20,6 +20,8 @@ class Trader:
 
         self._player_id = player_id
         self._position_limits = position_limits
+        if self._position_limits is None:
+            self._position_limits = MAX_POS
 
         self.turn = -1
         self.finish_turn = -1
@@ -116,19 +118,29 @@ class Trader:
 
             # calc sell prices
             if len(sells) > 0:
-                best_sell = max(sells.keys())
+                best_sell = min(sells.keys())
                 sell_size = sells[best_sell]
             else:
                 best_sell, sell_size = None, None
 
             # place orders
             if best_buy is not None:
-                if state.position[prod] < MAX_POS[prod]:
-                    self.place_buy_order(Order(symbol=sym, price=best_buy, quantity=1))
+                max_size = self.get_max_buy_size(state, sym)
+                if max_size > 0:
+                    self.place_buy_order(Order(
+                        symbol=sym, 
+                        price=best_buy, 
+                        quantity=max_size
+                    ))
 
             if best_sell is not None:
-                if state.position[prod] > -1 * MAX_POS[prod]:
-                    self.place_sell_order(Order(symbol=sym, price=best_sell, quantity=1))
+                max_size = self.get_max_sell_size(state, sym)
+                if max_size > 0:
+                    self.place_sell_order(Order(
+                        symbol=sym, 
+                        price=best_sell, 
+                        quantity=max_size
+                    ))
 
 
 
@@ -158,9 +170,21 @@ class Trader:
         return {sym: self._buy_orders[sym] + self._sell_orders[sym] for sym in self._buy_orders.keys()}
 
 
+    def get_max_buy_size(self, state: TradingState, sym: Symbol) -> int:
+        prod = state.listings[sym].product
+        limit = self._position_limits[prod]
+        pos = state.position[prod]
+        return limit - pos
+
+    def get_max_sell_size(self, state: TradingState, sym: Symbol) -> int:
+        prod = state.listings[sym].product
+        limit = self._position_limits[prod]
+        pos = state.position[prod]
+        return pos - (-limit)
 
 
-    def print_reconstruct(self, state):
+
+    def print_reconstruct(self, state: TradingState):
         state.turn = self.turn
         state.finish_turn = self.finish_turn
 
