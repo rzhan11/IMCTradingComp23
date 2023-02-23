@@ -238,6 +238,9 @@ class Book:
         sell_orders = {}
         for order in self.sells:
             sell_orders[order.price] = sell_orders.get(order.price, 0) + order.quantity
+
+        # negate sell_orders quantities
+        sell_orders = { p: -1 * q for p, q in sell_orders.items() }
         
         return OrderDepth(
             buy_orders=buy_orders,

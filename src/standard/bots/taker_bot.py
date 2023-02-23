@@ -26,6 +26,22 @@ class TakerBot:
         self._buy_orders = {sym: [] for sym in state.listings.keys()}
         self._sell_orders = {sym: [] for sym in state.listings.keys()}
 
+        self.negate_sell_book_quantities(state)
+
+    def negate_sell_book_quantities(self, state: TradingState):
+        """
+        The IMC engine's sell orders have negative quantity.
+        We preprocess them to make them all positive
+        """
+
+        for sym, book in state.order_depths.items():
+            # negate sell_quantity
+            new_sell_orders = {}
+            for sell_price, sell_quantity in book.sell_orders.items():
+                assert sell_quantity < 0
+                new_sell_orders[sell_price] = -1 * sell_quantity
+            book.sell_orders = new_sell_orders
+
 
     def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
         """

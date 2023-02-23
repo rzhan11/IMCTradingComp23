@@ -35,8 +35,8 @@ class Trader:
 
     def turn_start(self, state: TradingState):
         self.turn += 1
-        self._buy_orders = {sym: [] for sym in state.listings.keys()}
-        self._sell_orders = {sym: [] for sym in state.listings.keys()}
+        self._buy_orders : Dict[Symbol, List[Order]] = {sym: [] for sym in state.listings.keys()}
+        self._sell_orders : Dict[Symbol, List[Order]] = {sym: [] for sym in state.listings.keys()}
 
         print("-"*50)
         print(f"Round {state.timestamp}, {self.turn}")
@@ -49,21 +49,7 @@ class Trader:
         self.products = set([listing.product for sym, listing in state.listings.items()])
         self.fix_position(state)
 
-
-    def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
-        """
-        Only method required. It takes all buy and sell orders for all symbols as an input,
-        and outputs a list of orders to be sent
-        """
-        # Initialize the method output dict as an empty dict
-        self.turn_start(state)
-
-        self.run_internal(state)
-
-        my_orders = self.get_orders()
-        print("My orders", my_orders)
-        self.finish_turn += 1
-        return my_orders
+        self.negate_sell_book_quantities(state)
 
     def fix_position(self, state: TradingState):
         """
@@ -93,6 +79,36 @@ class Trader:
                 )
             state.listings = new_listings
 
+    def negate_sell_book_quantities(self, state: TradingState):
+        """
+        The IMC engine's sell orders have negative quantity.
+        We preprocess them to make them all positive
+        """
+
+        for sym, book in state.order_depths.items():
+            # negate sell_quantity
+            new_sell_orders = {}
+            for sell_price, sell_quantity in book.sell_orders.items():
+                assert sell_quantity < 0
+                new_sell_orders[sell_price] = -1 * sell_quantity
+            book.sell_orders = new_sell_orders
+
+
+    def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
+        """
+        Only method required. It takes all buy and sell orders for all symbols as an input,
+        and outputs a list of orders to be sent
+        """
+        # Initialize the method output dict as an empty dict
+        self.turn_start(state)
+
+        self.run_internal(state)
+
+        my_orders = self.get_orders()
+        print("My orders", my_orders)
+        self.finish_turn += 1
+        return my_orders
+
     def run_internal(self, state: TradingState):
 
         if self.is_close and state.timestamp >= self.max_timestamp - self.time_step * self.close_turns:
@@ -120,26 +136,27 @@ class Trader:
             if len(sells) > 0:
                 best_sell = min(sells.keys())
                 sell_size = sells[best_sell]
+                assert sell_size > 0
             else:
                 best_sell, sell_size = None, None
 
             # place orders
             if best_buy is not None:
-                max_size = self.get_max_buy_size(state, sym)
-                if max_size > 0:
+                limit = self.get_rem_buy_size(state, sym)
+                if limit > 0:
                     self.place_buy_order(Order(
                         symbol=sym, 
                         price=best_buy, 
-                        quantity=max_size
+                        quantity=min(limit, buy_size)
                     ))
 
             if best_sell is not None:
-                max_size = self.get_max_sell_size(state, sym)
-                if max_size > 0:
+                limit = self.get_rem_sell_size(state, sym)
+                if limit > 0:
                     self.place_sell_order(Order(
                         symbol=sym, 
                         price=best_sell, 
-                        quantity=max_size
+                        quantity=min(limit, sell_size)
                     ))
 
 
@@ -170,6 +187,12 @@ class Trader:
         return {sym: self._buy_orders[sym] + self._sell_orders[sym] for sym in self._buy_orders.keys()}
 
 
+    def get_rem_buy_size(self, state: TradingState, sym: Symbol) -> int:
+        return self.get_max_buy_size(state, sym) - self.get_cur_order_buy_size(sym)
+
+    def get_rem_sell_size(self, state: TradingState, sym: Symbol) -> int:
+        return self.get_max_sell_size(state, sym) - self.get_cur_order_sell_size(sym)
+
     def get_max_buy_size(self, state: TradingState, sym: Symbol) -> int:
         prod = state.listings[sym].product
         limit = self._position_limits[prod]
@@ -182,6 +205,15 @@ class Trader:
         pos = state.position[prod]
         return pos - (-limit)
 
+
+    def get_cur_order_buy_size(self, sym: Symbol) -> int:
+        orders = self._buy_orders[sym]
+        return sum([ord.quantity for ord in orders])
+
+
+    def get_cur_order_sell_size(self, sym: Symbol) -> int:
+        orders = self._sell_orders[sym]
+        return sum([ord.quantity for ord in orders])
 
 
     def print_reconstruct(self, state: TradingState):
