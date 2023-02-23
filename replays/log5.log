@@ -1,6 +1,6 @@
 Sandbox logs:
 0 OpenBLAS WARNING - could not determine the L2 cache size on this system, assuming 256k
-START RequestId: 81ab67ab-3c82-4e1e-a8b1-feba964db12e Version: $LATEST
+START RequestId: c4093b5a-056b-4c21-8c9f-e5dc7acfd1da Version: $LATEST
 --------------------------------------------------
 Round 0, 0
 --------------------------------------------------
@@ -8,8 +8,8 @@ __json_start
 {"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4892": 30, "4893": 1}, "sell_orders": {"4899": -30}}, "PEARLS": {"buy_orders": {"9995": 30, "9998": 1}, "sell_orders": {"10005": -30}}}, "own_trades": {}, "position": {}, "timestamp": 0}
 __json_end
 My orders {'PEARLS': [(PEARLS, 9998, 1), (PEARLS, 10005, -1)], 'BANANAS': [(BANANAS, 4893, 1), (BANANAS, 4899, -1)]}
-END RequestId: 81ab67ab-3c82-4e1e-a8b1-feba964db12e
-REPORT RequestId: 81ab67ab-3c82-4e1e-a8b1-feba964db12e	Duration: 2.21 ms	Billed Duration: 3 ms	Memory Size: 128 MB	Max Memory Used: 88 MB	Init Duration: 1571.08 ms	
+END RequestId: c4093b5a-056b-4c21-8c9f-e5dc7acfd1da
+REPORT RequestId: c4093b5a-056b-4c21-8c9f-e5dc7acfd1da	Duration: 17.52 ms	Billed Duration: 18 ms	Memory Size: 128 MB	Max Memory Used: 88 MB	Init Duration: 1619.97 ms	
 
 100 --------------------------------------------------
 Round 100, 1
@@ -2048,13 +2048,7 @@ __json_start
 {"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 28600}], "PEARLS": [{"buyer": "", "price": 10005.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 29000}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4887": 31, "4888": 9}, "sell_orders": {"4893": -2, "4894": -29}}, "PEARLS": {"buy_orders": {"9995": 29, "9996": 2, "9998": 9}, "sell_orders": {"10004": -2, "10005": -29}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4894.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 29000}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 15, "PEARLS": 20}, "timestamp": 29100}
 __json_end
 My orders {'PEARLS': [(PEARLS, 9998, 1), (PEARLS, 10005, -1)], 'BANANAS': [(BANANAS, 4888, 1), (BANANAS, 4894, -1)]}
-29200 --------------------------------------------------
-Round 29200, 292
---------------------------------------------------
-__json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 28600}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 29200}, {"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 29200}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4887": 20}, "sell_orders": {"4892": -4, "4894": -20}}, "PEARLS": {"buy_orders": {"9995": 20}, "sell_orders": {"10002": -3, "10005": -20}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4894.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 29000}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 15, "PEARLS": 20}, "timestamp": 29200}
-__json_end
-My orders {'PEARLS': [(PEARLS, 9995, 1), (PEARLS, 10005, -1)], 'BANANAS': [(BANANAS, 4887, 1), (BANANAS, 4894, -1)]}
+29200 
 29300 --------------------------------------------------
 Round 29300, 293
 --------------------------------------------------
@@ -2433,7 +2427,13 @@ __json_start
 {"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4884.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 34400}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 34200}, {"buyer": "", "price": 9995.0, "quantity": 2, "seller": "", "symbol": "PEARLS", "timestamp": 34200}, {"buyer": "", "price": 9996.0, "quantity": 2, "seller": "", "symbol": "PEARLS", "timestamp": 34200}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4884": 22}, "sell_orders": {"4891": -22}}, "PEARLS": {"buy_orders": {"9995": 22}, "sell_orders": {"10005": -22}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4885.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 34200}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 16, "PEARLS": 20}, "timestamp": 34600}
 __json_end
 My orders {'PEARLS': [(PEARLS, 9995, 1), (PEARLS, 10005, -1)], 'BANANAS': [(BANANAS, 4884, 1), (BANANAS, 4891, -1)]}
-34700 
+34700 --------------------------------------------------
+Round 34700, 347
+--------------------------------------------------
+__json_start
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4884.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 34400}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 34200}, {"buyer": "", "price": 9995.0, "quantity": 2, "seller": "", "symbol": "PEARLS", "timestamp": 34200}, {"buyer": "", "price": 9996.0, "quantity": 2, "seller": "", "symbol": "PEARLS", "timestamp": 34200}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4884": 29}, "sell_orders": {"4891": -29}}, "PEARLS": {"buy_orders": {"9995": 29}, "sell_orders": {"9998": -5, "10005": -29}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4885.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 34200}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 16, "PEARLS": 20}, "timestamp": 34700}
+__json_end
+My orders {'PEARLS': [(PEARLS, 9995, 1), (PEARLS, 10005, -1)], 'BANANAS': [(BANANAS, 4884, 1), (BANANAS, 4891, -1)]}
 34800 --------------------------------------------------
 Round 34800, 348
 --------------------------------------------------
@@ -9049,7 +9049,13 @@ __json_start
 {"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4902.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 129200}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 128400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4902": 24}, "sell_orders": {"4906": -2, "4908": -25}}, "PEARLS": {"buy_orders": {"9995": 25}, "sell_orders": {"10002": -2, "10005": -25}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 129200}
 __json_end
 My orders {'PEARLS': [(PEARLS, 9995, 1), (PEARLS, 10005, -1)], 'BANANAS': [(BANANAS, 4902, 1), (BANANAS, 4908, -1)]}
-129300 
+129300 --------------------------------------------------
+Round 129300, 1293
+--------------------------------------------------
+__json_start
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4902.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 129200}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 128400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4902": 20, "4903": 1}, "sell_orders": {"4909": -20}}, "PEARLS": {"buy_orders": {"9995": 20, "9998": 1}, "sell_orders": {"10005": -20}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 129300}
+__json_end
+My orders {'PEARLS': [(PEARLS, 9998, 1), (PEARLS, 10005, -1)], 'BANANAS': [(BANANAS, 4903, 1), (BANANAS, 4909, -1)]}
 129400 --------------------------------------------------
 Round 129400, 1294
 --------------------------------------------------
@@ -13788,285 +13794,291 @@ Round 197000, 1970
 __json_start
 {"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 10004.0, "quantity": 2, "seller": "", "symbol": "PEARLS", "timestamp": 195600}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4902": 21}, "sell_orders": {"4909": -21}}, "PEARLS": {"buy_orders": {"9995": 20, "9996": 1}, "sell_orders": {"9998": -1, "10004": -1, "10005": -20}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197000}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 197100 --------------------------------------------------
 Round 197100, 1971
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197000}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4902": 24}, "sell_orders": {"4908": -24}}, "PEARLS": {"buy_orders": {"9995": 23, "9996": 1, "10002": 1}, "sell_orders": {"10004": -1, "10005": -23}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197100}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197000}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4902": 24}, "sell_orders": {"4908": -24}}, "PEARLS": {"buy_orders": {"9995": 23, "9996": 1, "10002": 1}, "sell_orders": {"10004": -1, "10005": -23}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4902.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197000}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197000}]}, "position": {"BANANAS": 19, "PEARLS": 19}, "timestamp": 197100}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 197200 --------------------------------------------------
 Round 197200, 1972
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197100}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4902": 26}, "sell_orders": {"4905": -2, "4909": -26}}, "PEARLS": {"buy_orders": {"9995": 26}, "sell_orders": {"10005": -26}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197200}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197000}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4902": 26}, "sell_orders": {"4905": -2, "4909": -26}}, "PEARLS": {"buy_orders": {"9995": 26}, "sell_orders": {"10005": -26}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4902.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197100}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197100}]}, "position": {"BANANAS": 18, "PEARLS": 18}, "timestamp": 197200}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 197300 --------------------------------------------------
 Round 197300, 1973
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197100}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 28, "4904": 4, "4906": 4}, "sell_orders": {"4909": -1, "4910": -27}}, "PEARLS": {"buy_orders": {"9995": 27, "9996": 1, "9998": 4}, "sell_orders": {"10004": -1, "10005": -27}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197300}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197000}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 28, "4904": 4, "4906": 4}, "sell_orders": {"4909": -1, "4910": -27}}, "PEARLS": {"buy_orders": {"9995": 27, "9996": 1, "9998": 4}, "sell_orders": {"10004": -1, "10005": -27}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4902.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197200}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197200}]}, "position": {"BANANAS": 17, "PEARLS": 17}, "timestamp": 197300}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 197400 --------------------------------------------------
 Round 197400, 1974
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197100}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4902": 20, "4903": 1}, "sell_orders": {"4909": -21}}, "PEARLS": {"buy_orders": {"9995": 20, "9996": 1}, "sell_orders": {"9998": -1, "10004": -1, "10005": -20}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197400}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197000}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4902": 20, "4903": 1}, "sell_orders": {"4909": -21}}, "PEARLS": {"buy_orders": {"9995": 20, "9996": 1}, "sell_orders": {"9998": -1, "10004": -1, "10005": -20}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197300}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197300}]}, "position": {"BANANAS": 16, "PEARLS": 16}, "timestamp": 197400}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 197500 --------------------------------------------------
 Round 197500, 1975
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 25, "4904": 5}, "sell_orders": {"4909": -25}}, "PEARLS": {"buy_orders": {"9995": 23, "9996": 2, "9998": 5}, "sell_orders": {"10004": -2, "10005": -23}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197500}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 9, "seller": "", "symbol": "PEARLS", "timestamp": 197400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 25, "4904": 5}, "sell_orders": {"4909": -25}}, "PEARLS": {"buy_orders": {"9995": 23, "9996": 2, "9998": 5}, "sell_orders": {"10004": -2, "10005": -23}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197400}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197400}]}, "position": {"BANANAS": 15, "PEARLS": 15}, "timestamp": 197500}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 197600 --------------------------------------------------
 Round 197600, 1976
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 5, "seller": "", "symbol": "PEARLS", "timestamp": 197500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 26}, "sell_orders": {"4908": -1, "4909": -1, "4910": -25}}, "PEARLS": {"buy_orders": {"9995": 25, "9996": 1}, "sell_orders": {"10002": -1, "10004": -1, "10005": -25}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197600}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 196700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 4, "seller": "", "symbol": "PEARLS", "timestamp": 197500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 26}, "sell_orders": {"4908": -1, "4909": -1, "4910": -25}}, "PEARLS": {"buy_orders": {"9995": 25, "9996": 1}, "sell_orders": {"10002": -1, "10004": -1, "10005": -25}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197500}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197500}]}, "position": {"BANANAS": 14, "PEARLS": 14}, "timestamp": 197600}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 197700 --------------------------------------------------
 Round 197700, 1977
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 5, "seller": "", "symbol": "PEARLS", "timestamp": 197500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 22}, "sell_orders": {"4908": -10, "4910": -23}}, "PEARLS": {"buy_orders": {"9995": 23}, "sell_orders": {"10002": -10, "10005": -23}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197700}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 4, "seller": "", "symbol": "PEARLS", "timestamp": 197500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 22}, "sell_orders": {"4908": -10, "4910": -23}}, "PEARLS": {"buy_orders": {"9995": 23}, "sell_orders": {"10002": -10, "10005": -23}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197600}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197600}]}, "position": {"BANANAS": 13, "PEARLS": 13}, "timestamp": 197700}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 197800 --------------------------------------------------
 Round 197800, 1978
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 22}, "sell_orders": {"4910": -22}}, "PEARLS": {"buy_orders": {"9995": 21, "9996": 1}, "sell_orders": {"10004": -1, "10005": -21}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197800}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 22}, "sell_orders": {"4910": -22}}, "PEARLS": {"buy_orders": {"9995": 21, "9996": 1}, "sell_orders": {"10004": -1, "10005": -21}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197700}]}, "position": {"BANANAS": 12, "PEARLS": 12}, "timestamp": 197800}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 197900 --------------------------------------------------
 Round 197900, 1979
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 26, "4908": 11}, "sell_orders": {"4909": -2, "4910": -24}}, "PEARLS": {"buy_orders": {"9995": 24, "9996": 2}, "sell_orders": {"10004": -2, "10005": -24}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 197900}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 26, "4908": 11}, "sell_orders": {"4909": -2, "4910": -24}}, "PEARLS": {"buy_orders": {"9995": 24, "9996": 2}, "sell_orders": {"10004": -2, "10005": -24}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197800}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197800}]}, "position": {"BANANAS": 11, "PEARLS": 11}, "timestamp": 197900}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198000 --------------------------------------------------
 Round 198000, 1980
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 28}, "sell_orders": {"4909": -28}}, "PEARLS": {"buy_orders": {"9995": 28}, "sell_orders": {"10005": -28}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198000}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 28}, "sell_orders": {"4909": -28}}, "PEARLS": {"buy_orders": {"9995": 28}, "sell_orders": {"10005": -28}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4908.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 197900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 197900}]}, "position": {"BANANAS": 10, "PEARLS": 10}, "timestamp": 198000}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198100 --------------------------------------------------
 Round 198100, 1981
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 23}, "sell_orders": {"4908": -5, "4910": -23}}, "PEARLS": {"buy_orders": {"9995": 22, "9996": 1}, "sell_orders": {"10002": -5, "10004": -1, "10005": -22}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198100}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 23}, "sell_orders": {"4908": -5, "4910": -23}}, "PEARLS": {"buy_orders": {"9995": 22, "9996": 1}, "sell_orders": {"10002": -5, "10004": -1, "10005": -22}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198000}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198000}]}, "position": {"BANANAS": 9, "PEARLS": 9}, "timestamp": 198100}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198200 --------------------------------------------------
 Round 198200, 1982
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 31}, "sell_orders": {"4908": -2, "4910": -31}}, "PEARLS": {"buy_orders": {"9995": 29, "9996": 2}, "sell_orders": {"10002": -2, "10004": -2, "10005": -29}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198200}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 31}, "sell_orders": {"4908": -2, "4910": -31}}, "PEARLS": {"buy_orders": {"9995": 29, "9996": 2}, "sell_orders": {"10002": -2, "10004": -2, "10005": -29}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198100}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198100}]}, "position": {"BANANAS": 8, "PEARLS": 8}, "timestamp": 198200}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198300 --------------------------------------------------
 Round 198300, 1983
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 22, "4904": 2}, "sell_orders": {"4905": -1, "4908": -7, "4910": -24}}, "PEARLS": {"buy_orders": {"9995": 22, "9996": 2}, "sell_orders": {"10002": -7, "10004": -2, "10005": -22}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198300}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 197700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 22, "4904": 2}, "sell_orders": {"4905": -1, "4908": -7, "4910": -24}}, "PEARLS": {"buy_orders": {"9995": 22, "9996": 2}, "sell_orders": {"10002": -7, "10004": -2, "10005": -22}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198200}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198200}]}, "position": {"BANANAS": 7, "PEARLS": 7}, "timestamp": 198300}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198400 --------------------------------------------------
 Round 198400, 1984
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 198400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 30, "4904": 3}, "sell_orders": {"4910": -30}}, "PEARLS": {"buy_orders": {"9995": 30, "9998": 2}, "sell_orders": {"10005": -30}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198400}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 198400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 30, "4904": 3}, "sell_orders": {"4910": -30}}, "PEARLS": {"buy_orders": {"9995": 30, "9998": 2}, "sell_orders": {"10005": -30}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198300}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198300}]}, "position": {"BANANAS": 6, "PEARLS": 6}, "timestamp": 198400}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198500 --------------------------------------------------
 Round 198500, 1985
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 32}, "sell_orders": {"4908": -7, "4910": -32}}, "PEARLS": {"buy_orders": {"9995": 30, "9996": 2}, "sell_orders": {"10002": -4, "10004": -2, "10005": -30}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198500}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4903": 32}, "sell_orders": {"4908": -7, "4910": -32}}, "PEARLS": {"buy_orders": {"9995": 30, "9996": 2}, "sell_orders": {"10002": -4, "10004": -2, "10005": -30}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198400}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198400}]}, "position": {"BANANAS": 5, "PEARLS": 5}, "timestamp": 198500}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198600 --------------------------------------------------
 Round 198600, 1986
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 25}, "sell_orders": {"4910": -1, "4911": -24}}, "PEARLS": {"buy_orders": {"9995": 24, "9996": 1}, "sell_orders": {"10004": -1, "10005": -24}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198600}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 25}, "sell_orders": {"4910": -1, "4911": -24}}, "PEARLS": {"buy_orders": {"9995": 24, "9996": 1}, "sell_orders": {"10004": -1, "10005": -24}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198500}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198500}]}, "position": {"BANANAS": 4, "PEARLS": 4}, "timestamp": 198600}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198700 --------------------------------------------------
 Round 198700, 1987
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 22, "4905": 5}, "sell_orders": {"4911": -22}}, "PEARLS": {"buy_orders": {"9995": 22, "9998": 5}, "sell_orders": {"10005": -22}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198700}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 22, "4905": 5}, "sell_orders": {"4911": -22}}, "PEARLS": {"buy_orders": {"9995": 22, "9998": 5}, "sell_orders": {"10005": -22}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198600}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198600}]}, "position": {"BANANAS": 3, "PEARLS": 3}, "timestamp": 198700}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198800 --------------------------------------------------
 Round 198800, 1988
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 28}, "sell_orders": {"4911": -28}}, "PEARLS": {"buy_orders": {"9995": 28}, "sell_orders": {"10005": -28}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198800}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}, {"buyer": "", "price": 4903.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 197700}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 28}, "sell_orders": {"4911": -28}}, "PEARLS": {"buy_orders": {"9995": 28}, "sell_orders": {"10005": -28}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4905.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198700}], "PEARLS": [{"buyer": "", "price": 9998.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198700}]}, "position": {"BANANAS": 2, "PEARLS": 2}, "timestamp": 198800}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 198900 --------------------------------------------------
 Round 198900, 1989
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 23}, "sell_orders": {"4909": -1, "4911": -23}}, "PEARLS": {"buy_orders": {"9995": 22, "9996": 1}, "sell_orders": {"10002": -2, "10004": -1, "10005": -22}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 198900}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 23}, "sell_orders": {"4909": -1, "4911": -23}}, "PEARLS": {"buy_orders": {"9995": 22, "9996": 1}, "sell_orders": {"10002": -2, "10004": -1, "10005": -22}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198800}], "PEARLS": [{"buyer": "", "price": 9995.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198800}]}, "position": {"BANANAS": 1, "PEARLS": 1}, "timestamp": 198900}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [(PEARLS, 0, -1)], 'BANANAS': [(BANANAS, 0, -1)]}
 199000 --------------------------------------------------
 Round 199000, 1990
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 32}, "sell_orders": {"4905": -1, "4911": -32}}, "PEARLS": {"buy_orders": {"9995": 30, "9996": 2}, "sell_orders": {"10004": -2, "10005": -30}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199000}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 32}, "sell_orders": {"4905": -1, "4911": -32}}, "PEARLS": {"buy_orders": {"9995": 30, "9996": 2}, "sell_orders": {"10004": -2, "10005": -30}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199000}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 199100 --------------------------------------------------
 Round 199100, 1991
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 23}, "sell_orders": {"4910": -2, "4911": -21}}, "PEARLS": {"buy_orders": {"9995": 21, "9996": 2}, "sell_orders": {"10004": -2, "10005": -21}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199100}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 23}, "sell_orders": {"4910": -2, "4911": -21}}, "PEARLS": {"buy_orders": {"9995": 21, "9996": 2}, "sell_orders": {"10004": -2, "10005": -21}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199100}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 199200 --------------------------------------------------
 Round 199200, 1992
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 31}, "sell_orders": {"4911": -31}}, "PEARLS": {"buy_orders": {"9995": 29, "9996": 2}, "sell_orders": {"10004": -2, "10005": -29}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199200}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 31}, "sell_orders": {"4911": -31}}, "PEARLS": {"buy_orders": {"9995": 29, "9996": 2}, "sell_orders": {"10004": -2, "10005": -29}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199200}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 199300 --------------------------------------------------
 Round 199300, 1993
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 29, "4905": 1, "4910": 1}, "sell_orders": {"4911": -30}}, "PEARLS": {"buy_orders": {"9995": 29, "9996": 1}, "sell_orders": {"10004": -1, "10005": -29}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199300}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 29, "4905": 1, "4910": 1}, "sell_orders": {"4911": -30}}, "PEARLS": {"buy_orders": {"9995": 29, "9996": 1}, "sell_orders": {"10004": -1, "10005": -29}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199300}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 199400 --------------------------------------------------
 Round 199400, 1994
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 199300}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 25}, "sell_orders": {"4912": -25}}, "PEARLS": {"buy_orders": {"9995": 25, "10002": 4}, "sell_orders": {"10005": -25}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199400}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 199300}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 198500}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 25}, "sell_orders": {"4912": -25}}, "PEARLS": {"buy_orders": {"9995": 25, "10002": 4}, "sell_orders": {"10005": -25}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199400}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 199500 --------------------------------------------------
 Round 199500, 1995
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 199300}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 199400}, {"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 22}, "sell_orders": {"4912": -22}}, "PEARLS": {"buy_orders": {"9995": 21, "9996": 1}, "sell_orders": {"9998": -2, "10004": -1, "10005": -21}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199500}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4910.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 199300}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 199400}, {"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 22}, "sell_orders": {"4912": -22}}, "PEARLS": {"buy_orders": {"9995": 21, "9996": 1}, "sell_orders": {"9998": -2, "10004": -1, "10005": -21}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199500}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 199600 --------------------------------------------------
 Round 199600, 1996
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4905.0, "quantity": 17, "seller": "", "symbol": "BANANAS", "timestamp": 199500}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 199400}, {"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 28}, "sell_orders": {"4912": -28}}, "PEARLS": {"buy_orders": {"9995": 28}, "sell_orders": {"10005": -28}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199600}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4905.0, "quantity": 17, "seller": "", "symbol": "BANANAS", "timestamp": 199500}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 199400}, {"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 28}, "sell_orders": {"4912": -28}}, "PEARLS": {"buy_orders": {"9995": 28}, "sell_orders": {"10005": -28}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199600}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 199700 --------------------------------------------------
 Round 199700, 1997
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4905.0, "quantity": 17, "seller": "", "symbol": "BANANAS", "timestamp": 199500}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 199400}, {"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 28, "4905": 2}, "sell_orders": {"4911": -30}}, "PEARLS": {"buy_orders": {"9995": 28, "9996": 2, "10002": 1}, "sell_orders": {"10004": -2, "10005": -28}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199700}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4905.0, "quantity": 17, "seller": "", "symbol": "BANANAS", "timestamp": 199500}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 3, "seller": "", "symbol": "PEARLS", "timestamp": 199400}, {"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199400}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4904": 28, "4905": 2}, "sell_orders": {"4911": -30}}, "PEARLS": {"buy_orders": {"9995": 28, "9996": 2, "10002": 1}, "sell_orders": {"10004": -2, "10005": -28}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199700}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 199800 --------------------------------------------------
 Round 199800, 1998
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4905.0, "quantity": 17, "seller": "", "symbol": "BANANAS", "timestamp": 199500}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 28}, "sell_orders": {"4911": -28}}, "PEARLS": {"buy_orders": {"9995": 27, "9996": 1}, "sell_orders": {"10004": -1, "10005": -27}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199800}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4905.0, "quantity": 17, "seller": "", "symbol": "BANANAS", "timestamp": 199500}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 28}, "sell_orders": {"4911": -28}}, "PEARLS": {"buy_orders": {"9995": 27, "9996": 1}, "sell_orders": {"10004": -1, "10005": -27}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199800}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 199900 --------------------------------------------------
 Round 199900, 1999
 --------------------------------------------------
 __json_start
-{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 3, "seller": "", "symbol": "BANANAS", "timestamp": 199900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 25, "4906": 6}, "sell_orders": {"4912": -25}}, "PEARLS": {"buy_orders": {"9995": 25, "9998": 9}, "sell_orders": {"10005": -25}}}, "own_trades": {"BANANAS": [{"buyer": "SUBMISSION", "price": 4888.0, "quantity": 1, "seller": "", "symbol": "BANANAS", "timestamp": 37700}], "PEARLS": [{"buyer": "SUBMISSION", "price": 9995.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 28100}]}, "position": {"BANANAS": 20, "PEARLS": 20}, "timestamp": 199900}
+{"listings": {"BANANAS": {"denomination": 1, "product": "BANANAS", "symbol": "BANANAS"}, "PEARLS": {"denomination": 1, "product": "PEARLS", "symbol": "PEARLS"}}, "market_trades": {"BANANAS": [{"buyer": "", "price": 4906.0, "quantity": 3, "seller": "", "symbol": "BANANAS", "timestamp": 199900}], "PEARLS": [{"buyer": "", "price": 10002.0, "quantity": 1, "seller": "", "symbol": "PEARLS", "timestamp": 199700}]}, "observations": {}, "order_depths": {"BANANAS": {"buy_orders": {"4905": 25, "4906": 6}, "sell_orders": {"4912": -25}}, "PEARLS": {"buy_orders": {"9995": 25, "9998": 9}, "sell_orders": {"10005": -25}}}, "own_trades": {"BANANAS": [{"buyer": "", "price": 4904.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "BANANAS", "timestamp": 198900}], "PEARLS": [{"buyer": "", "price": 9996.0, "quantity": 1, "seller": "SUBMISSION", "symbol": "PEARLS", "timestamp": 198900}]}, "position": {"BANANAS": 0, "PEARLS": 0}, "timestamp": 199900}
 __json_end
-My orders {'PEARLS': [(PEARLS, 1000000000.0, -1)], 'BANANAS': [(BANANAS, 1000000000.0, -1)]}
+My orders {'PEARLS': [], 'BANANAS': []}
 
 
 Submission logs:
-2023-02-23T04:39:10Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:11Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:12Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:13Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:13Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:14Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:14Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:15Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:15Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:16Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:16Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:17Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:17Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:18Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:18Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:19Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:19Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:20Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:20Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:21Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:21Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:22Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:22Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:23Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:23Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:24Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:24Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:25Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:25Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:26Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:26Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:27Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:27Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:28Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:28Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:29Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:29Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:30Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:30Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:31Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:31Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:32Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:32Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:33Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:33Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:34Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:34Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:35Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:35Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:36Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:36Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:37Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:37Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:38Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:38Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:39Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:39Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:40Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:40Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:41Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:41Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:42Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:42Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:43Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:43Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:44Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:44Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:45Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:45Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:46Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:46Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:47Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:47Z Orders for product PEARLS exceeded limit of 20 set
-2023-02-23T04:39:48Z Orders for product BANANAS exceeded limit of 20 set
-2023-02-23T04:39:48Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:37Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:38Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:39Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:40Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:40Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:41Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:41Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:42Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:42Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:43Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:43Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:44Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:44Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:45Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:45Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:46Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:46Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:47Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:47Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:48Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:48Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:49Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:49Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:50Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:50Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:51Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:51Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:52Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:52Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:53Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:53Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:54Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:54Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:55Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:55Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:56Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:56Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:57Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:57Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:58Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:58Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:43:59Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:43:59Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:00Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:00Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:01Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:01Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:02Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:02Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:03Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:03Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:04Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:04Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:05Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:05Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:06Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:06Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:07Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:07Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:08Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:08Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:09Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:09Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:10Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:10Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:11Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:11Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:12Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:12Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:13Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:13Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:14Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:14Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:15Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:15Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:16Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:16Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:17Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:17Z Orders for product PEARLS exceeded limit of 20 set
+2023-02-23T04:44:18Z Orders for product BANANAS exceeded limit of 20 set
+2023-02-23T04:44:18Z Orders for product PEARLS exceeded limit of 20 set

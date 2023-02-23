@@ -100,7 +100,7 @@ class Trader:
             if pos < 0:
                 self.place_buy_order(Order(symbol=prod, price=1e9, quantity=1))
             elif pos > 0:
-                self.place_sell_order(Order(symbol=prod, price=1e9, quantity=1))
+                self.place_sell_order(Order(symbol=prod, price=0, quantity=1))
 
 
 
