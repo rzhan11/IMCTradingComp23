@@ -45,9 +45,13 @@ class MakerBot:
 
     def run_internal(self, state):
 
-        self.make_market("PEARLS", 10000, 10, 2)
-        
-        self.make_market("BANANAS", 5000, 5, 2)
+        fairs = self._fair_obj.value
+
+        for prod, value in fairs.items():
+            if prod == "SEASHELLS":
+                continue
+            
+            self.make_market(prod, int(value), 10, 2)
 
 
 

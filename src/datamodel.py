@@ -361,7 +361,7 @@ class TradingState(object):
         for player, all_pos in self.__positions.items():
             pnls[player] = 0
             for prod, pos in all_pos.items():
-                pnls[player] += pos * self.__fairs.fairs[prod]
+                pnls[player] += pos * self.__fairs.value[prod]
 
         return pnls
 

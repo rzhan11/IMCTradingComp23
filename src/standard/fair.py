@@ -2,6 +2,9 @@ from datamodel import *
 
 import random
 
+import numpy as np
+
+np.random.seed(1)
 
 
 random.seed(1)
@@ -12,17 +15,38 @@ class Fair:
 
         self.products = products
 
-        self.fairs = {
+        self.value = {
             "BANANAS": 5000,
             "PEARLS": 10000,
             "SEASHELLS": 1,
         }
-        
+
+        self.vols = {
+            "BANANAS": 0.25,
+            "PEARLS": 0,
+        }
+
+        self._update_func = self.update_lognormal
+
+        self.vol_turns = 1000
+
+        # do not update these values
+        self.constant_set = {"SEASHELLS"}
+        self.update_set = set(self.products) - self.constant_set
 
     def update_fairs(self, timestamp, turn):
-        
-        self.fairs["SEASHELLS"] = 1
-        
-        self.fairs["PEARLS"] = 10000
+        for prod in self.update_set:
+            self._update_func(prod)
 
-        self.fairs["BANANAS"] = 5000
+
+
+    def update_lognormal(self, prod):
+        value = self.value[prod]
+        vol = self.vols[prod]
+
+        change = np.random.lognormal(
+            mean=0, 
+            sigma=vol * 1 / self.vol_turns
+        )
+
+        self.value[prod] = value * change

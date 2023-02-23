@@ -18,9 +18,16 @@ class Trader:
             player_id=None, 
             position_limits=None):
 
-        self.turn = -1
         self._player_id = player_id
         self._position_limits = position_limits
+
+        self.turn = -1
+
+        # number of turns used to close
+        self.is_close = True
+        self.close_turns = 30
+        self.max_timestamp = 200000
+        self.time_step = 100
 
     def turn_start(self, state):
         self.turn += 1
@@ -49,37 +56,51 @@ class Trader:
         print("My orders", my_orders)
         return my_orders
 
-    def run_internal(self, state):
+    def run_internal(self, state: TradingState):
 
-        self.place_buy_order(Order("PEARLS", 100000, 1))
-        # # Iterate over all the keys (the available products) contained in the order depths
-        # for sym in state.order_depths.keys():
+        if self.is_close and state.timestamp >= self.max_timestamp - self.time_step * self.close_turns:
+            self.close_positions(state)
+            return
 
-        #     book = state.order_depths[sym]
+        # Iterate over all the keys (the available products) contained in the order depths
+        for sym in state.order_depths.keys():
 
-        #     buys = book.buy_orders
-        #     sells = book.sell_orders
+            book = state.order_depths[sym]
 
-        #     # calc buy prices
-        #     if len(buys) > 0:
-        #         best_buy = max(buys.keys())
-        #         buy_size = buys[best_buy]
-        #     else:
-        #         best_buy, buy_size = None, None
+            buys = book.buy_orders
+            sells = book.sell_orders
 
-        #     # calc sell prices
-        #     if len(sells) > 0:
-        #         best_sell = max(sells.keys())
-        #         sell_size = sells[best_sell]
-        #     else:
-        #         best_sell, sell_size = None, None
+            # calc buy prices
+            if len(buys) > 0:
+                best_buy = max(buys.keys())
+                buy_size = buys[best_buy]
+            else:
+                best_buy, buy_size = None, None
 
-        #     # place orders
-        #     if best_buy is not None:
-        #         self.place_buy_order(Order(symbol=sym, price=best_buy, quantity=1))
+            # calc sell prices
+            if len(sells) > 0:
+                best_sell = max(sells.keys())
+                sell_size = sells[best_sell]
+            else:
+                best_sell, sell_size = None, None
 
-        #     if best_sell is not None:
-        #         self.place_sell_order(Order(symbol=sym, price=best_sell, quantity=1))
+            # place orders
+            if best_buy is not None:
+                self.place_buy_order(Order(symbol=sym, price=best_buy, quantity=1))
+
+            if best_sell is not None:
+                self.place_sell_order(Order(symbol=sym, price=best_sell, quantity=1))
+
+
+
+
+    def close_positions(self, state: TradingState):
+
+        for prod, pos in state.position.items():
+            if pos < 0:
+                self.place_buy_order(Order(symbol=prod, price=1e9, quantity=1))
+            elif pos > 0:
+                self.place_sell_order(Order(symbol=prod, price=1e9, quantity=1))
 
 
 
