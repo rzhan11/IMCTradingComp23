@@ -22,7 +22,7 @@ class Fair:
         }
 
         self.vols = {
-            "BANANAS": 1 / 100,
+            "BANANAS": 0.31 / 100, # 0.31% every 100 turns -> 1% every 1000 turns
             "PEARLS": 0,
         }
 

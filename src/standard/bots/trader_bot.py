@@ -3,7 +3,11 @@ import numpy as np
 import json
 
 from typing import Dict, List
-from datamodel import OrderDepth, TradingState, Order, Symbol, Listing, Product
+from datamodel import OrderDepth, TradingState, Order, Listing
+from datamodel import Symbol, Product, Position
+
+
+Price = int
 
 
 MAX_POS = {
@@ -31,6 +35,8 @@ class Trader:
         self.close_turns = 30
         self.max_timestamp = 200000
         self.time_step = 100
+
+        self.is_penny = True
 
 
     def turn_start(self, state: TradingState):
@@ -118,45 +124,46 @@ class Trader:
         # Iterate over all the keys (the available products) contained in the order depths
         for sym in state.order_depths.keys():
 
-            prod = state.listings[sym].product
+            prod: Product = state.listings[sym].product
 
             book = state.order_depths[sym]
 
-            buys = book.buy_orders
-            sells = book.sell_orders
+            buys: List[Price, Position] = sorted(list(book.buy_orders.items()), reverse=True)
+            sells: List[Price, Position] = sorted(list(book.sell_orders.items()), reverse=False)
 
-            # calc buy prices
-            if len(buys) > 0:
-                best_buy = max(buys.keys())
-                buy_size = buys[best_buy]
-            else:
-                best_buy, buy_size = None, None
+            should_penny = False
+            if self.is_penny:
+                if len(buys) > 0 and len(sells) > 0:
+                    spread = sells[0][0] - buys[0][0]
+                    should_penny = spread >= 5
+                else:
+                    should_penny = True
 
-            # calc sell prices
-            if len(sells) > 0:
-                best_sell = min(sells.keys())
-                sell_size = sells[best_sell]
-                assert sell_size > 0
-            else:
-                best_sell, sell_size = None, None
 
-            # place orders
-            if best_buy is not None:
+            # match orders on buy-side
+            for price, quantity in buys:
+                if should_penny:
+                    price += 1
+
                 limit = self.get_rem_buy_size(state, sym)
                 if limit > 0:
                     self.place_buy_order(Order(
-                        symbol=sym, 
-                        price=best_buy, 
-                        quantity=min(limit, buy_size)
+                        symbol=sym,
+                        price=price,
+                        quantity=min(limit, quantity)
                     ))
 
-            if best_sell is not None:
+            # match orders on sell-side
+            for price, quantity in sells:
+                if should_penny:
+                    price -= 1
+
                 limit = self.get_rem_sell_size(state, sym)
                 if limit > 0:
                     self.place_sell_order(Order(
-                        symbol=sym, 
-                        price=best_sell, 
-                        quantity=min(limit, sell_size)
+                        symbol=sym,
+                        price=price,
+                        quantity=min(limit, quantity)
                     ))
 
 
