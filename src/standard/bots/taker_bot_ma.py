@@ -124,13 +124,13 @@ class TakerBot_ma:
                     place_order_func(Order(
                     symbol=sym,
                     price=buys[1][0], #willing to take a slippage of up to 2 best price
-                    quantity=buys[0][0], # trade best price's volume 
+                    quantity=buys[0][1], # trade best price's volume 
                     ))
                 if signal > 0: 
                     place_order_func(Order(
                     symbol=sym,
                     price=sells[1][0],
-                    quantity=sells[0][0],
+                    quantity=sells[0][1],
                     )   )
 
 
