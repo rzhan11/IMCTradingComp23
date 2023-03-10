@@ -104,9 +104,12 @@ class Trader:
 
         OM = self.OM
 
+        # close all positions if `is_close` flag is on, and we are at end of game
         if self.is_close and state.timestamp >= self.max_timestamp - self.time_step * self.close_turns:
             self.close_positions(state)
             return
+
+
 
         # Iterate over all the keys (the available products) contained in the order depths
         for sym in state.order_depths.keys():
@@ -296,6 +299,9 @@ class Preprocess:
 
     @classmethod
     def preprocess(cls, state: TradingState) -> None:
+        """
+        Call this method to perform all desired preprocessing
+        """
         cls.fix_listings(state)
         cls.fix_position(state)
         cls.negate_sell_book_quantities(state)

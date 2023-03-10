@@ -54,7 +54,8 @@ FAIR = Fair(
 
 from .bots.taker_bot import TakerBot
 from .bots.maker_bot import MakerBot
-from .bots.trader_bot import Trader
+# from .bots.trader_bot import Trader
+from .bots.trader_bot_ma import Trader
 
 PLAYERS = [
     MakerBot(
