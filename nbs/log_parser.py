@@ -2,7 +2,7 @@ import json
 import sys
 from pathlib import Path
 
-def process_file(fname):
+def process_file(fname, start_sep, end_sep):
 
     input_file = Path(fname)
 
@@ -10,9 +10,6 @@ def process_file(fname):
     with open(input_file, "r") as f:
         text = f.read()
 
-
-    start_sep = "__json_start"
-    end_sep = "__json_end"
 
     # split on start_sep
     splits = text.split(start_sep)
