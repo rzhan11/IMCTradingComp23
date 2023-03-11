@@ -39,6 +39,7 @@ PARAMS:
 {json.dumps(PARAMS, indent=2)}
 
 Description:
+uses faster ema (no pandas)
 
 - DataManager lookback=100
 
@@ -78,6 +79,7 @@ class Trader:
         # init history tracker
         self.DM : DataManager = DataManager(
             lookback=PARAMS["DM.lookback"],
+            ema_span=PARAMS["ema_span"],
         )
 
         # helper vars
@@ -127,7 +129,7 @@ class Trader:
 
         # store/process game state into history
         self.DM.add_history(state, self.products, self.symbols)
-        self.DM.process_history()
+        # self.DM.process_history()
 
 
     def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
@@ -194,13 +196,10 @@ class Trader:
             # volatility_cap = 0.0005
             # lookback = 10
             
-            book_tops = self.DM.book_tops
+            # book_tops = self.DM.book_tops
 
-            mid_ema = self.calc_ema(
-                book_tops[f"{sym}_mid"], 
-                span=self.ema_span,
-            )
-            print(type(mid_ema), mid_ema)
+            mid_ema = self.DM.emas[sym]
+            print(f"ema {sym}", mid_ema)
 
             self.take_logic(
                 state=state,
@@ -349,9 +348,10 @@ class Trader:
 
         my_orders = {sym: { "buy_orders": OM._buy_orders[sym], "sell_orders": OM._sell_orders[sym] } for sym in self.symbols}
 
-        emas = {}
-        for sym in self.symbols:
-            emas[sym] = self.calc_ema(self.DM.book_tops[f"{sym}_mid"], span=self.ema_span)
+        emas = self.DM.emas
+        # emas = {}
+        # for sym in self.symbols:
+        #     emas[sym] = self.calc_ema(self.DM.book_tops[f"{sym}_mid"], span=self.ema_span)
 
 
         obj = {
@@ -376,177 +376,64 @@ class DataManager:
     This class stores historical data + contains all of our data analysis code
     """
 
-    def __init__(self, lookback):
+    def __init__(self, lookback, ema_span):
         """
         lookback - defines how many historical days are used by our data analysis
         """
 
-        self.history = []
         self.lookback = lookback
+        self.ema_span = ema_span
+
+        self.history = {}
+        self.emas = {}
+
 
     def add_history(self, state: TradingState, symbols: List[Symbol], products: List[Product]):
         """
         Stores state
         - should be called after preprocessing / recording of game state
         """
-        self.history += [json.loads(state.toJSON())]
         self.symbols = symbols
         self.products = products
 
+        for sym in symbols:
+            book = state.order_depths[sym]
 
-    def process_history(self):
-        """
-        Creates processed df
-        """
+            buys: List[Tuple[Price, Position]] = sorted(list(book.buy_orders.items()), reverse=True)
+            sells: List[Tuple[Price, Position]] = sorted(list(book.sell_orders.items()), reverse=False)
 
-        # process only some historical data
-        data = self.history[-1 * self.lookback:]
-        raw_df = pd.DataFrame(data)
-        raw_df = self.preprocess_df(raw_df)
+            if len(buys) > 0:
+                best_buy = buys[0][0]
 
-        book_tops = self.calc_book_tops(raw_df)
+            if len(sells) > 0:
+                best_sell = sells[0][0]
 
-        market_trades, my_trades = self.process_trades(raw_df)
+            mid = (best_buy + best_sell) / 2
 
-        self.book_tops = book_tops
-        self.market_trades = market_trades
-        self.my_trades = my_trades
-
-
-    def preprocess_df(self, raw_df):
-        """
-        - Modifies column names
-        - Converts raw_df["book"] to be all ints
-        """
-
-        # print(raw_df)
-
-        # modify column names
-        raw_df = raw_df.drop("listings", axis=1)
-        raw_df = raw_df.rename({
-            "timestamp": "time",
-            "order_depths": "book",
-        }, axis=1)
-
-        # modify raw_df["book"] to be all ints
-        raw_df["book"] = raw_df["book"].apply(lambda x: {
-            sym: {
-                typ: {
-                    int(k) : v for k, v in orders.items()
-                }
-                for typ, orders in all_orders.items()
+            obj = {
+                "best_buy": best_buy,
+                "best_sell": best_sell,
+                "mid": mid,
             }
-            for sym, all_orders in x.items()
-        })
 
-        return raw_df
-
-
-    def calc_book_tops(self, raw_df):
-        _symbols: List[Symbol] = self.symbols
+            # add obj to history
+            if sym not in self.history:
+                self.history[sym] = []
+            self.history[sym] += [obj]
 
 
-        book_data = []
-        book_cols = []
+            # calculate ema
+            alpha = 2 / (self.ema_span + 1)
+            old_ema = self.emas.get(sym, mid)
+            new_ema = mid * alpha + (1 - alpha) * old_ema
+            # round for pretty print
+            new_ema = round(new_ema, 2)
 
-        for sym in _symbols:
-            ### buys
-            col = raw_df["book"].apply(lambda x: x[sym])
-            # convert dicts into int -> int
-            col = col.apply(lambda x : [(int(k), v) for k, v in x["buy_orders"].items()])
-            col = col.apply(lambda x : sorted(x, reverse=True))
-            col = col.apply(lambda x : x[0][0] if len(x) > 0 else np.nan).astype(float)
-            
-            book_data += [col]
-            book_cols += [f"{sym}_best_buy"]
-            
-            
-            ### sells
-            col = raw_df["book"].apply(lambda x: x[sym])
-            col = col.apply(lambda x : [(int(k), v) for k, v in x["sell_orders"].items()])
-            col = col.apply(lambda x : sorted(x, reverse=False))
-            col = col.apply(lambda x: x[0][0] if len(x) > 0 else np.nan).astype(float)
-            
-            book_data += [col]
-            book_cols += [f"{sym}_best_sell"]
-            
-            
-        book_tops = pd.concat(book_data, axis=1)
-        book_tops.columns = book_cols
-
-        # all book tops
-        for sym in _symbols:
-            book_tops[f"{sym}_mid"] = (book_tops[f"{sym}_best_buy"] + book_tops[f"{sym}_best_sell"]) / 2
-            book_tops[f"{sym}_spread"] = book_tops[f"{sym}_best_sell"] - book_tops[f"{sym}_best_buy"]
-            
-            print("missing mids", sym, list(book_tops.index[book_tops[f"{sym}_mid"].isna()]))
-            
-            book_tops[f"{sym}_mid"] = book_tops[f"{sym}_mid"].bfill()
-            assert book_tops[f"{sym}_spread"].all() > 0
-
-        # sort columns
-        book_tops = book_tops.reindex(sorted(book_tops.columns), axis=1)
-        book_tops["time"] = raw_df["time"]
-
-        return book_tops
+            obj["ema"] = new_ema
+            self.emas[sym] = new_ema
 
 
-    def process_trades(self, raw_df):
 
-        def flatten_trades(df, col, is_me):
-            # get market trades
-
-            data = []
-            for index, row  in df.iterrows():
-                all_trades = list(row[col].values())
-                for sym_trades in all_trades:
-                    for trade in sym_trades:
-                        trade["time"] = row["time"] # fill time
-                        trade["turn"] = row["turn"] # fill time
-                    data += sym_trades
-
-            df = pd.DataFrame(data, columns=['buyer', 'price', 'quantity', 'seller', 'symbol', 'timestamp', 'time', 'turn'])
-
-            df = df.rename({"timestamp": "order_time"}, axis=1)
-            
-            # calculate info about my trades
-            df["is_me"] = is_me
-            df["my_buy"] = df["buyer"] == "SUBMISSION"
-            df["my_sell"] = df["seller"] == "SUBMISSION"
-            df["my_quantity"] = df["quantity"] * (df["my_buy"].astype(int) - df["my_sell"].astype(int))
-            df["self_trade"] = df["my_buy"] & df["my_sell"]
-            
-            # report self trades
-            self_trades = df[df["self_trade"]]
-            # report_issue_and_continue( len(self_trades) == 0, self_trades)
-            
-            return df
-
-        # get my_trades, market_trades, and trade_df (all_trades)
-        market_trades = flatten_trades(
-            raw_df, 
-            "market_trades", 
-            is_me=False
-        ).sort_values(by="time")
-
-        my_trades = flatten_trades(
-            raw_df, 
-            "own_trades", 
-            is_me=True
-        ).sort_values(by="time")
-
-        # filter duplicate trades
-        market_trades = market_trades.drop_duplicates(subset=["buyer", "price", "quantity", "seller", "symbol", "order_time"])
-        my_trades = my_trades.drop_duplicates(subset=["buyer", "price", "quantity", "seller", "symbol", "order_time"])
-
-        trade_df = pd.concat([market_trades, my_trades])
-        trade_df = trade_df.sort_values(by="time").reset_index(drop=True)
-        # trade_df = trade_df.drop(["order_time", "buyer", "seller"], axis=1)
-
-        my_trades = trade_df[trade_df["is_me"]]
-        market_trades = trade_df[~trade_df["is_me"]]
-
-        return my_trades, market_trades
 
 
 

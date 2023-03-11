@@ -11,7 +11,8 @@ import traceback
 
 def main(package: str):
 
-    main_start_time = time.time()
+    main_wall_start_time = time.time()
+    main_process_start_time = time.process_time()
 
     # init world state
     GS = importlib.import_module(".game_settings", package=package)
@@ -92,7 +93,8 @@ def main(package: str):
     for player, all_pos in final_positions.items():
         eprint(f"{player}, pnl: {pnls[player]}, {all_pos}")
 
-    eprint("Engine time", round(time.time() - main_start_time, 1))
+    eprint("Engine CPU time", round(time.process_time() - main_process_start_time, 1))
+    eprint("Engine Wall time", round(time.time() - main_wall_start_time, 1))
     
 
 
