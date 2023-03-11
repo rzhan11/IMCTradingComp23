@@ -1,1 +1,1 @@
-### IMC Trading Competition - Kryptonight
+### IMC Trading Competition - Unger
