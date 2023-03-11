@@ -3,7 +3,7 @@ import numpy as np
 import json
 import time
 
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from datamodel import OrderDepth, TradingState, Order, Listing
 from datamodel import Symbol, Product, Position
 
@@ -16,6 +16,44 @@ MAX_POS = {
     "BANANAS": 20,
 }
 
+PARAMS = {
+    # game parameters
+    "max_timestamp": 200000,
+    "time_step": 100,
+
+    # how many historical data points to use for analysis
+    "DM.lookback": 100,
+
+    # auto-close 
+    "is_close": False,
+    "close_turns": 30,
+
+    # market-making params
+    "is_penny": False,
+    "ema_span": 21,
+}
+
+
+_description = f"""
+PARAMS:
+{json.dumps(PARAMS, indent=2)}
+
+Description:
+
+- DataManager lookback=100
+
+- EMA span 10
+
+- taker logic
+    - ema as fair
+    - min_buy/sell_edge = 1
+
+- maker logic
+    - ema as fair
+    - no pennying
+
+- no closing at end of game
+"""
 
 
 class Trader:
@@ -25,6 +63,9 @@ class Trader:
             position_limits=None,
             is_main=False,
             ):
+        
+        # print description to help identify bot/params
+        print(_description)
 
         # local engine vars
         self._player_id = player_id
@@ -35,24 +76,31 @@ class Trader:
             self._position_limits = MAX_POS
         
         # init history tracker
-        self.DM : DataManager = DataManager()
+        self.DM : DataManager = DataManager(
+            lookback=PARAMS["DM.lookback"],
+        )
 
         # helper vars
         self.turn = -1
         self.finish_turn = -1
 
         # parameters
-        self.is_close = False
-        self.close_turns = 30
-        self.max_timestamp = 200000
-        self.time_step = 100
+        self.is_close = PARAMS["is_close"]
+        self.close_turns = PARAMS["close_turns"]
+        self.max_timestamp = PARAMS["max_timestamp"]
+        self.time_step = PARAMS["time_step"]
 
-        self.is_penny = False
+        self.is_penny = PARAMS["is_penny"]
 
-        self.ema_span = 21
+        self.ema_span = PARAMS["ema_span"]
+        
 
     def turn_start(self, state: TradingState):
-        self.start_time = time.time()
+        # measure time
+        self.wall_start_time = time.time()
+        self.process_start_time = time.process_time()
+
+        # print round header
         self.turn += 1
 
         print("-"*50)
@@ -79,7 +127,7 @@ class Trader:
 
         # store/process game state into history
         self.DM.add_history(state, self.products, self.symbols)
-        self.DM.process_history()
+        # self.DM.process_history()
 
 
     def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
@@ -137,12 +185,9 @@ class Trader:
 
             book = state.order_depths[sym]
 
-            buys: List[Price, Position] = sorted(list(book.buy_orders.items()), reverse=True)
-            sells: List[Price, Position] = sorted(list(book.sell_orders.items()), reverse=False)
+            buys: List[Tuple[Price, Position]] = sorted(list(book.buy_orders.items()), reverse=True)
+            sells: List[Tuple[Price, Position]] = sorted(list(book.sell_orders.items()), reverse=False)
 
-            should_penny = False
-
-        
             # Use exponential moving average to check for price spikes
             # should_carp_bid = True
             # should_carp_ask = True
@@ -157,32 +202,39 @@ class Trader:
             )
             print(type(mid_ema), mid_ema)
 
-            # match orders on buy-side
-            for price, quantity in buys:
-                if should_penny:
-                    price += 1
+            self.take_logic(
+                state=state,
+                sym=sym,
+                buys=buys,
+                sells=sells, 
+                mid_ema=mid_ema,
+            )
 
-                # don't carp if buy price is higher than EMA
-                if price > mid_ema:
-                    continue
+            self.make_logic(
+                state=state,
+                sym=sym,
+                buys=buys,
+                sells=sells, 
+                mid_ema=mid_ema,
+            )
 
-                limit = OM.get_rem_buy_size(state, sym)
-                if limit > 0:
-                    OM.place_buy_order(Order(
-                        symbol=sym,
-                        price=price,
-                        quantity=min(limit, quantity)
-                    ))
 
-            # match orders on sell-side
-            for price, quantity in sells:
-                if should_penny:
-                    price -= 1
+    def take_logic(self, 
+            state: TradingState,
+            sym: Symbol, 
+            buys: List[Tuple[Price, Position]], 
+            sells: List[Tuple[Price, Position]], 
+            mid_ema: float,
+            ):
+        
+        OM = self.OM
 
-                # don't carp if sell price is higher than EMA
-                if price < mid_ema:
-                    continue
+        min_buy_edge = 1
+        min_sell_edge = 1
 
+        # take orders on buy_side (we sell to existing buy orders)
+        for price, quantity in buys:
+            if price > mid_ema + min_buy_edge:
                 limit = OM.get_rem_sell_size(state, sym)
                 if limit > 0:
                     OM.place_sell_order(Order(
@@ -191,6 +243,70 @@ class Trader:
                         quantity=min(limit, quantity)
                     ))
 
+        # take orders on sell side (we buy from existing sell orders)
+        for price, quantity in sells:
+            if price < mid_ema - min_sell_edge:
+                limit = OM.get_rem_buy_size(state, sym)
+                if limit > 0:
+                    OM.place_buy_order(Order(
+                        symbol=sym,
+                        price=price,
+                        quantity=min(limit, quantity)
+                    ))
+
+    def make_logic(self, 
+            state: TradingState,
+            sym: Symbol, 
+            buys: List[Tuple[Price, Position]], 
+            sells: List[Tuple[Price, Position]], 
+            mid_ema: float,
+            ):
+        
+        OM = self.OM
+
+        should_penny = False
+        if self.is_penny:
+            if len(buys) > 0 and len(sells) > 0:
+                spread = sells[0][0] - buys[0][0]
+                if spread > 2:
+                    should_penny = True
+
+        # match orders on buy-side
+        for price, quantity in buys:
+            if should_penny:
+                price += 1
+
+            # don't carp if buy price is higher than EMA
+            if price > mid_ema:
+                continue
+
+            limit = OM.get_rem_buy_size(state, sym)
+            if limit > 0:
+                OM.place_buy_order(Order(
+                    symbol=sym,
+                    price=price,
+                    quantity=min(limit, quantity)
+                ))
+
+        # match orders on sell-side
+        for price, quantity in sells:
+            if should_penny:
+                price -= 1
+
+            # don't carp if sell price is higher than EMA
+            if price < mid_ema:
+                continue
+
+            limit = OM.get_rem_sell_size(state, sym)
+            if limit > 0:
+                OM.place_sell_order(Order(
+                    symbol=sym,
+                    price=price,
+                    quantity=min(limit, quantity)
+                ))
+
+
+
     #calculates EMA of past x days
     def calc_ema(self, ser : pd.Series, span : int):
         return ser.ewm(span=span, adjust=False).mean().iloc[-1]
@@ -198,7 +314,7 @@ class Trader:
 
     def close_positions(self, state: TradingState):
         """ Closes out our position at the end of the game
-        - is currently used since IMC's engine uses weird fair values
+        - was previously used since IMC's engine uses weird fair values
         """
         OM = self.OM
 
@@ -240,7 +356,8 @@ class Trader:
 
         obj = {
             "time": state.timestamp,
-            "compute_time": time.time() - self.start_time,
+            "wall_time": time.time() - self.wall_start_time,
+            "process_time": time.process_time() - self.process_start_time,
             "my_orders": my_orders,
             "ema": emas,
         }
@@ -259,7 +376,7 @@ class DataManager:
     This class stores historical data + contains all of our data analysis code
     """
 
-    def __init__(self, lookback=100):
+    def __init__(self, lookback):
         """
         lookback - defines how many historical days are used by our data analysis
         """
