@@ -20,9 +20,12 @@ class Trader:
 
     def __init__(self, 
             player_id=None, 
-            position_limits=None):
+            position_limits=None,
+            is_main=False,
+            ):
 
         self._player_id = player_id
+        self._is_main = is_main
         self._position_limits = position_limits
         if self._position_limits is None:
             self._position_limits = MAX_POS

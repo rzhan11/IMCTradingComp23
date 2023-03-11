@@ -14,10 +14,12 @@ class TakerBot:
     def __init__(self, 
             player_id=None, 
             position_limits=None,
+            is_main=False,
             fair_obj=None):
 
         self.turn = -1
         self._player_id = player_id
+        self._is_main = is_main
         self._position_limits = position_limits
         self._fair_obj = fair_obj
 

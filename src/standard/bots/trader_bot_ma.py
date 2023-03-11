@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
+import time
 
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order, Listing
@@ -14,33 +15,33 @@ MAX_POS = {
     "PEARLS": 20,
     "BANANAS": 20,
 }
-# keeps track of best bid and ask each time step
-# symbols are hardcoded
-HISTORY = {
-    "BID" : {"PEARLS": [],
-            "BANANAS": [],
-            },
-    "ASK" : {"PEARLS": [],
-            "BANANAS": [],
-            },
-}
+
 
 
 class Trader:
 
     def __init__(self, 
             player_id=None, 
-            position_limits=None):
+            position_limits=None,
+            is_main=False,
+            ):
 
+        # local engine vars
         self._player_id = player_id
+        self._is_main = is_main
+
         self._position_limits = position_limits
         if self._position_limits is None:
             self._position_limits = MAX_POS
+        
+        # init history tracker
+        self.DM : DataManager = DataManager()
 
+        # helper vars
         self.turn = -1
         self.finish_turn = -1
 
-        # number of turns used to close
+        # parameters
         self.is_close = False
         self.close_turns = 30
         self.max_timestamp = 200000
@@ -48,14 +49,17 @@ class Trader:
 
         self.is_penny = False
 
+        self.ema_span = 21
+
     def turn_start(self, state: TradingState):
+        self.start_time = time.time()
         self.turn += 1
 
         print("-"*50)
         print(f"Round {state.timestamp}, {self.turn}")
         print("-"*50)
 
-        
+
 
         # print raw json, for analysis
         self.record_game_state(state)
@@ -68,10 +72,15 @@ class Trader:
         self.symbols = set([listing.symbol for sym, listing in state.listings.items()])
 
         # reset _buy_orders/_sell_orders for this turn
-        self.OM = OrderManager(
+        self.OM : OrderManager = OrderManager(
             symbols=self.symbols,
             position_limits=self._position_limits,
         )
+
+        # store/process game state into history
+        self.DM.add_history(state, self.products, self.symbols)
+        self.DM.process_history()
+
 
     def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
         """ Called by game engine, returns dict of buy/sell orders
@@ -132,69 +141,59 @@ class Trader:
             sells: List[Price, Position] = sorted(list(book.sell_orders.items()), reverse=False)
 
             should_penny = False
+
         
             # Use exponential moving average to check for price spikes
-            should_carp_bid = True
-            should_carp_ask = True
-            volatility_cap = 0.0005
-            lookback = 10
-            if self.turn > lookback and len(HISTORY['BID'][sym]) > lookback and len(HISTORY['ASK'][sym]) > lookback:
-                bid_ema = self.calc_ema(list(reversed(HISTORY['BID'][sym])), lookback)
-                ask_ema = self.calc_ema(list(reversed(HISTORY['ASK'][sym])), lookback)
-                curr_best_bid = buys[0][0]
-                curr_best_ask = sells[0][0]
-                if curr_best_bid > (1 + volatility_cap) * bid_ema:
-                    # best bid is 0.05% above 10 day moving average, dont carp
-                    should_carp_bid = False
-                if curr_best_ask < (1 - volatility_cap) * ask_ema:
-                    # best ask is 0.05% above 10 day moving average, dont carp
-                    should_carp_ask = False
+            # should_carp_bid = True
+            # should_carp_ask = True
+            # volatility_cap = 0.0005
+            # lookback = 10
+            
+            book_tops = self.DM.book_tops
 
-            # store best bid and ask 
-            if len(buys) > 0:
-                HISTORY['BID'][sym].append(buys[0][0])
-            if len(sells) > 0:
-                HISTORY['ASK'][sym].append(sells[0][0])
-
+            mid_ema = self.calc_ema(
+                book_tops[f"{sym}_mid"], 
+                span=self.ema_span,
+            )
+            print(type(mid_ema), mid_ema)
 
             # match orders on buy-side
-            if should_carp_bid:
-                for price, quantity in buys:
-                    if should_penny:
-                        price += 1
+            for price, quantity in buys:
+                if should_penny:
+                    price += 1
 
-                    limit = OM.get_rem_buy_size(state, sym)
-                    if limit > 0:
-                        OM.place_buy_order(Order(
-                            symbol=sym,
-                            price=price,
-                            quantity=min(limit, quantity)
-                        ))
+                # don't carp if buy price is higher than EMA
+                if price > mid_ema:
+                    continue
+
+                limit = OM.get_rem_buy_size(state, sym)
+                if limit > 0:
+                    OM.place_buy_order(Order(
+                        symbol=sym,
+                        price=price,
+                        quantity=min(limit, quantity)
+                    ))
 
             # match orders on sell-side
-            if should_carp_ask:
-                for price, quantity in sells:
-                    if should_penny:
-                        price -= 1
+            for price, quantity in sells:
+                if should_penny:
+                    price -= 1
 
-                    limit = OM.get_rem_sell_size(state, sym)
-                    if limit > 0:
-                        OM.place_sell_order(Order(
-                            symbol=sym,
-                            price=price,
-                            quantity=min(limit, quantity)
-                        ))
+                # don't carp if sell price is higher than EMA
+                if price < mid_ema:
+                    continue
+
+                limit = OM.get_rem_sell_size(state, sym)
+                if limit > 0:
+                    OM.place_sell_order(Order(
+                        symbol=sym,
+                        price=price,
+                        quantity=min(limit, quantity)
+                    ))
 
     #calculates EMA of past x days
-    def calc_ema(self, lst, x):
-        # alpha = 2 / (x + 1)  # calculate smoothing factor
-        alpha = 0.3
-        ema = [lst[0]]       # initialize EMA with first value of the list
-        for i in range(1, x):
-            ema.append(alpha * lst[i] + (1 - alpha) * ema[-1])  # calculate EMA using recursive formula
-        return ema[-1]  # return last value of EMA
-
-
+    def calc_ema(self, ser : pd.Series, span : int):
+        return ser.ewm(span=span, adjust=False).mean().iloc[-1]
 
 
     def close_positions(self, state: TradingState):
@@ -211,11 +210,11 @@ class Trader:
 
 
 
-
     def record_game_state(self, state: TradingState):
         """
         Prints out the state of the game when received
         """
+
         state.turn = self.turn
         state.finish_turn = self.finish_turn
 
@@ -234,15 +233,203 @@ class Trader:
 
         my_orders = {sym: { "buy_orders": OM._buy_orders[sym], "sell_orders": OM._sell_orders[sym] } for sym in self.symbols}
 
+        emas = {}
+        for sym in self.symbols:
+            emas[sym] = self.calc_ema(self.DM.book_tops[f"{sym}_mid"], span=self.ema_span)
+
+
         obj = {
             "time": state.timestamp,
+            "compute_time": time.time() - self.start_time,
             "my_orders": my_orders,
+            "ema": emas,
         }
+
+
         
         # convert obj to 
         s = json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True)
 
         print(f"__turn_end_start\n{s}\n__turn_end_end")
+
+
+
+class DataManager:
+    """
+    This class stores historical data + contains all of our data analysis code
+    """
+
+    def __init__(self, lookback=100):
+        """
+        lookback - defines how many historical days are used by our data analysis
+        """
+
+        self.history = []
+        self.lookback = lookback
+
+    def add_history(self, state: TradingState, symbols: List[Symbol], products: List[Product]):
+        """
+        Stores state
+        - should be called after preprocessing / recording of game state
+        """
+        self.history += [json.loads(state.toJSON())]
+        self.symbols = symbols
+        self.products = products
+
+
+    def process_history(self):
+        """
+        Creates processed df
+        """
+
+        # process only some historical data
+        data = self.history[-1 * self.lookback:]
+        raw_df = pd.DataFrame(data)
+        raw_df = self.preprocess_df(raw_df)
+
+        book_tops = self.calc_book_tops(raw_df)
+
+        market_trades, my_trades = self.process_trades(raw_df)
+
+        self.book_tops = book_tops
+        self.market_trades = market_trades
+        self.my_trades = my_trades
+
+
+    def preprocess_df(self, raw_df):
+        """
+        - Modifies column names
+        - Converts raw_df["book"] to be all ints
+        """
+
+        # print(raw_df)
+
+        # modify column names
+        raw_df = raw_df.drop("listings", axis=1)
+        raw_df = raw_df.rename({
+            "timestamp": "time",
+            "order_depths": "book",
+        }, axis=1)
+
+        # modify raw_df["book"] to be all ints
+        raw_df["book"] = raw_df["book"].apply(lambda x: {
+            sym: {
+                typ: {
+                    int(k) : v for k, v in orders.items()
+                }
+                for typ, orders in all_orders.items()
+            }
+            for sym, all_orders in x.items()
+        })
+
+        return raw_df
+
+
+    def calc_book_tops(self, raw_df):
+        _symbols: List[Symbol] = self.symbols
+
+
+        book_data = []
+        book_cols = []
+
+        for sym in _symbols:
+            ### buys
+            col = raw_df["book"].apply(lambda x: x[sym])
+            # convert dicts into int -> int
+            col = col.apply(lambda x : [(int(k), v) for k, v in x["buy_orders"].items()])
+            col = col.apply(lambda x : sorted(x, reverse=True))
+            col = col.apply(lambda x : x[0][0] if len(x) > 0 else np.nan).astype(float)
+            
+            book_data += [col]
+            book_cols += [f"{sym}_best_buy"]
+            
+            
+            ### sells
+            col = raw_df["book"].apply(lambda x: x[sym])
+            col = col.apply(lambda x : [(int(k), v) for k, v in x["sell_orders"].items()])
+            col = col.apply(lambda x : sorted(x, reverse=False))
+            col = col.apply(lambda x: x[0][0] if len(x) > 0 else np.nan).astype(float)
+            
+            book_data += [col]
+            book_cols += [f"{sym}_best_sell"]
+            
+            
+        book_tops = pd.concat(book_data, axis=1)
+        book_tops.columns = book_cols
+
+        # all book tops
+        for sym in _symbols:
+            book_tops[f"{sym}_mid"] = (book_tops[f"{sym}_best_buy"] + book_tops[f"{sym}_best_sell"]) / 2
+            book_tops[f"{sym}_spread"] = book_tops[f"{sym}_best_sell"] - book_tops[f"{sym}_best_buy"]
+            
+            print("missing mids", sym, list(book_tops.index[book_tops[f"{sym}_mid"].isna()]))
+            
+            book_tops[f"{sym}_mid"] = book_tops[f"{sym}_mid"].bfill()
+            assert book_tops[f"{sym}_spread"].all() > 0
+
+        # sort columns
+        book_tops = book_tops.reindex(sorted(book_tops.columns), axis=1)
+        book_tops["time"] = raw_df["time"]
+
+        return book_tops
+
+
+    def process_trades(self, raw_df):
+
+        def flatten_trades(df, col, is_me):
+            # get market trades
+
+            data = []
+            for index, row  in df.iterrows():
+                all_trades = list(row[col].values())
+                for sym_trades in all_trades:
+                    for trade in sym_trades:
+                        trade["time"] = row["time"] # fill time
+                        trade["turn"] = row["turn"] # fill time
+                    data += sym_trades
+
+            df = pd.DataFrame(data, columns=['buyer', 'price', 'quantity', 'seller', 'symbol', 'timestamp', 'time', 'turn'])
+
+            df = df.rename({"timestamp": "order_time"}, axis=1)
+            
+            # calculate info about my trades
+            df["is_me"] = is_me
+            df["my_buy"] = df["buyer"] == "SUBMISSION"
+            df["my_sell"] = df["seller"] == "SUBMISSION"
+            df["my_quantity"] = df["quantity"] * (df["my_buy"].astype(int) - df["my_sell"].astype(int))
+            df["self_trade"] = df["my_buy"] & df["my_sell"]
+            
+            # report self trades
+            self_trades = df[df["self_trade"]]
+            # report_issue_and_continue( len(self_trades) == 0, self_trades)
+            
+            return df
+
+        # get my_trades, market_trades, and trade_df (all_trades)
+        market_trades = flatten_trades(
+            raw_df, 
+            "market_trades", 
+            is_me=False
+        ).sort_values(by="time")
+
+        my_trades = flatten_trades(
+            raw_df, 
+            "own_trades", 
+            is_me=True
+        ).sort_values(by="time")
+
+        # filter duplicate trades
+        market_trades = market_trades.drop_duplicates(subset=["buyer", "price", "quantity", "seller", "symbol", "order_time"])
+        my_trades = my_trades.drop_duplicates(subset=["buyer", "price", "quantity", "seller", "symbol", "order_time"])
+
+        trade_df = pd.concat([market_trades, my_trades])
+        trade_df = trade_df.sort_values(by="time").reset_index(drop=True)
+        # trade_df = trade_df.drop(["order_time", "buyer", "seller"], axis=1)
+
+        my_trades = trade_df[trade_df["is_me"]]
+        market_trades = trade_df[~trade_df["is_me"]]
+
+        return my_trades, market_trades
 
 
 

@@ -1,5 +1,6 @@
 from datamodel import *
 
+import time
 import argparse
 import importlib
 import sys
@@ -9,6 +10,9 @@ import traceback
 
 
 def main(package: str):
+
+    main_start_time = time.time()
+
     # init world state
     GS = importlib.import_module(".game_settings", package=package)
 
@@ -61,6 +65,7 @@ def main(package: str):
                     eprint(b)
 
             # run trader actions
+
             orders = player.run(state_player_copy)
             orders = {k: [el.copy() for el in v] for k, v in orders.items()}
 
@@ -87,8 +92,8 @@ def main(package: str):
     for player, all_pos in final_positions.items():
         eprint(f"{player}, pnl: {pnls[player]}, {all_pos}")
 
+    eprint("Engine time", round(time.time() - main_start_time, 1))
     
-
 
 
 
@@ -109,7 +114,7 @@ if __name__ == "__main__":
         log_file = Path("../replays/local.log")
 
         print(f"Writing to {log_file} ...")
-
+        
         with open(log_file, "w") as f:
             old_stdout, old_stderr = sys.stdout, sys.stderr
             sys.stdout, sys.stderr = f, f

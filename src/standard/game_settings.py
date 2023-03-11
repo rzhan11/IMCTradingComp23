@@ -61,12 +61,18 @@ PLAYERS = [
     MakerBot(
         player_id=100, 
         position_limits=market_position_limits, 
+        is_main=False,
         fair_obj=FAIR
     ),
-    Trader(player_id=1717, position_limits=trader_position_limits),
+    Trader(
+        player_id=1717, 
+        position_limits=trader_position_limits,
+        is_main=True,
+    ),
     TakerBot(
         player_id=500, 
         position_limits=market_position_limits, 
+        is_main=False,
         fair_obj=FAIR
     ),
 ]
