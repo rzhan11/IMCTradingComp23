@@ -37,7 +37,8 @@ PARAMS = {
     # how many days to test EMA against true
     "DM.ema_test_days": 100,
 
-    "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
+    "DM.ema_spans": [3, 10, 21, 100],
+    # "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
 }
 
 
@@ -454,26 +455,29 @@ class DataManager:
         else:
             # find best ema (using L1 difference)
             scores = []
+            # need ema_test_days + ema_eval_true_days + 1
+            n_days = min(self.ema_test_days + self.ema_eval_true_days + 1, len(sym_history))
+
+            # calc SMAs
+            old_mids = [sym_history[-(i + 1)]["mid"] for i in range(n_days - 1)]
+            old_mids = list(reversed(old_mids))
+
+            def moving_average(a, n=3) :
+                ret = np.cumsum(a)
+                ret[n:] = ret[n:] - ret[:-n]
+                return ret[n - 1:] / n
+            
+            # sma = moving_average(old_mids, n=1)
+            smas = moving_average(old_mids, n=self.ema_eval_true_days)
+
+            # print(smas)
+            # print(old_mids)
+            
             for span in self.ema_spans:
-                # need ema_test_days + ema_eval_true_days + 1
-                n_days = min(self.ema_test_days + self.ema_eval_true_days + 1, len(sym_history))
-
-                # calc SMAs
-                old_mids = [sym_history[-i]["mid"] for i in range(n_days - 1)]
-
-                def moving_average(a, n=3) :
-                    ret = np.cumsum(a)
-                    ret[n:] = ret[n:] - ret[:-n]
-                    return ret[n - 1:] / n
-                
-                # sma = moving_average(old_mids, n=1)
-                smas = moving_average(old_mids, n=self.ema_eval_true_days)
 
                 ema_preds = [sym_history[-(i + self.ema_eval_true_days + 1)]["emas"][span] for i in range(len(smas))]
-
-                # print(smas)
-                # print(old_mids)
-                # print(ema_preds)
+                ema_preds = list(reversed(ema_preds))
+                print(ema_preds)
 
                 # compare true SMA vs pred EMA
                 diffs = abs(smas - ema_preds)
