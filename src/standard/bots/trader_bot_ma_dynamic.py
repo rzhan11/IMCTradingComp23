@@ -21,9 +21,6 @@ PARAMS = {
     "max_timestamp": 200000,
     "time_step": 100,
 
-    # how many historical data points to use for analysis
-    "DM.lookback": 100,
-
     # auto-close 
     "is_close": False,
     "close_turns": 30,
@@ -31,10 +28,16 @@ PARAMS = {
     # market-making params
     "is_penny": False,
 
-    # fair span (used to compare EMAs)
-    "fair_span": 10,
+    # how many historical data points to use for analysis
+    "DM.lookback": 100,
 
-    "ema_spans": [10, 21, 100],
+    # how many days used to compute true value
+    "DM.ema_eval_true_days": 10,
+
+    # how many days to test EMA against true
+    "DM.ema_test_days": 100,
+
+    "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
 }
 
 
@@ -76,8 +79,9 @@ class Trader:
         # init history tracker
         self.DM : DataManager = DataManager(
             lookback=PARAMS["DM.lookback"],
-            fair_span=PARAMS["fair_span"],
-            ema_spans=PARAMS["ema_spans"],
+            ema_eval_true_days=PARAMS["DM.ema_eval_true_days"],
+            ema_test_days=PARAMS["DM.ema_test_days"],
+            ema_spans=PARAMS["DM.ema_spans"],
         )
 
         # helper vars
@@ -116,6 +120,9 @@ class Trader:
         # setup list of current products
         self.products = set([listing.product for sym, listing in state.listings.items()])
         self.symbols = set([listing.symbol for sym, listing in state.listings.items()])
+
+        self.products = sorted(list(self.products))
+        self.symbols = sorted(list(self.symbols))
 
         # reset _buy_orders/_sell_orders for this turn
         self.OM : OrderManager = OrderManager(
@@ -358,7 +365,7 @@ class Trader:
             "my_orders": my_orders,
             "emas": emas,
             "best_emas": best_emas,
-            "best_emas_spans": best_ema_spans,
+            "best_ema_spans": best_ema_spans,
         }
 
 
@@ -375,13 +382,20 @@ class DataManager:
     This class stores historical data + contains all of our data analysis code
     """
 
-    def __init__(self, lookback, fair_span, ema_spans):
+    def __init__(
+                self, 
+                lookback, 
+                ema_eval_true_days,
+                ema_test_days,
+                ema_spans,
+            ):
         """
         lookback - defines how many historical days are used by our data analysis
         """
 
         self.lookback = lookback
-        self.fair_span = fair_span
+        self.ema_eval_true_days = ema_eval_true_days
+        self.ema_test_days = ema_test_days
         self.ema_spans = ema_spans
         self.default_ema_span = ema_spans[0]
 
@@ -434,20 +448,36 @@ class DataManager:
             new_emas[span] = round(new_ema, 2)
 
         # find best ema
-        if len(sym_history) == 0:
+        if len(sym_history) < self.ema_eval_true_days + 1:
             # use default if no history
             best_ema_span = self.default_ema_span
         else:
             # find best ema (using L1 difference)
             scores = []
             for span in self.ema_spans:
-                num_history = min(self.fair_span, len(sym_history))
+                # need ema_test_days + ema_eval_true_days + 1
+                n_days = min(self.ema_test_days + self.ema_eval_true_days + 1, len(sym_history))
 
-                old_mids = [sym_history[-i]["mid"] for i in range(num_history)]
-                avg = np.mean(old_mids)
+                # calc SMAs
+                old_mids = [sym_history[-i]["mid"] for i in range(n_days - 1)]
 
-                score = abs(avg - new_emas[span])
+                def moving_average(a, n=3) :
+                    ret = np.cumsum(a)
+                    ret[n:] = ret[n:] - ret[:-n]
+                    return ret[n - 1:] / n
                 
+                # sma = moving_average(old_mids, n=1)
+                smas = moving_average(old_mids, n=self.ema_eval_true_days)
+
+                ema_preds = [sym_history[-(i + self.ema_eval_true_days + 1)]["emas"][span] for i in range(len(smas))]
+
+                # print(smas)
+                # print(old_mids)
+                # print(ema_preds)
+
+                # compare true SMA vs pred EMA
+                diffs = abs(smas - ema_preds)
+                score = np.mean(diffs)
                 scores += [(score, span)]
 
             best_score, best_ema_span = min(scores)

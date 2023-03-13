@@ -358,7 +358,7 @@ class Trader:
             "my_orders": my_orders,
             "emas": emas,
             "best_emas": best_emas,
-            "best_emas_spans": best_ema_spans,
+            "best_ema_spans": best_ema_spans,
         }
 
 
