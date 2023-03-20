@@ -26,7 +26,7 @@ PARAMS = {
     "close_turns": 30,
 
     # market-making params
-    "is_penny": False,
+    "is_penny": True,
     "match_size": False,
 
     # how many historical data points to use for analysis
@@ -197,12 +197,8 @@ class Trader:
             buys: List[Tuple[Price, Position]] = sorted(list(book.buy_orders.items()), reverse=True)
             sells: List[Tuple[Price, Position]] = sorted(list(book.sell_orders.items()), reverse=False)
 
-            # Use exponential moving average to check for price spikes
-            # should_carp_bid = True
-            # should_carp_ask = True
-            # volatility_cap = 0.0005
-            # lookback = 10
             
+
             # book_tops = self.DM.book_tops
             sym_history = self.DM.history[sym]
 
@@ -210,12 +206,20 @@ class Trader:
             mid_ema_span = sym_history[-1]["best_ema_span"]
             print(f"{sym} EMA (span: {mid_ema_span}), {mid_ema}")
 
+            fair_value = mid_ema
+
+            # check if can calculate the fair value using the order book
+            max_size_buy_price, max_size_sell_price = self.should_calc_mid_from_order_book(buys, sells)
+            if (max_size_buy_price != None and max_size_sell_price != None):
+                # mid price is the middle of largest buy/sell orders with the largest size
+                fair_value = (max_size_buy_price + max_size_sell_price)/2
+            
             self.take_logic(
                 state=state,
                 sym=sym,
                 buys=buys,
                 sells=sells, 
-                mid_ema=mid_ema,
+                fair_value=fair_value,
             )
 
             self.make_logic(
@@ -223,7 +227,7 @@ class Trader:
                 sym=sym,
                 buys=buys,
                 sells=sells, 
-                mid_ema=mid_ema,
+                fair_value=fair_value,
             )
 
 
@@ -232,7 +236,7 @@ class Trader:
             sym: Symbol, 
             buys: List[Tuple[Price, Position]], 
             sells: List[Tuple[Price, Position]], 
-            mid_ema: float,
+            fair_value: float,
             ):
         
         OM = self.OM
@@ -242,7 +246,7 @@ class Trader:
 
         # take orders on buy_side (we sell to existing buy orders)
         for price, quantity in buys:
-            if price > mid_ema + min_buy_edge:
+            if price > fair_value + min_buy_edge:
                 limit = OM.get_rem_sell_size(state, sym)
                 if limit > 0:
                     OM.place_sell_order(Order(
@@ -253,7 +257,7 @@ class Trader:
 
         # take orders on sell side (we buy from existing sell orders)
         for price, quantity in sells:
-            if price < mid_ema - min_sell_edge:
+            if price < fair_value - min_sell_edge:
                 limit = OM.get_rem_buy_size(state, sym)
                 if limit > 0:
                     OM.place_buy_order(Order(
@@ -267,7 +271,7 @@ class Trader:
             sym: Symbol, 
             buys: List[Tuple[Price, Position]], 
             sells: List[Tuple[Price, Position]], 
-            mid_ema: float,
+            fair_value: float,
             ):
         
         OM = self.OM
@@ -285,7 +289,7 @@ class Trader:
                 price += 1
 
             # don't carp if buy price is higher than EMA
-            if price > mid_ema:
+            if price > fair_value:
                 continue
 
             limit = OM.get_rem_buy_size(state, sym)
@@ -307,7 +311,7 @@ class Trader:
                 price -= 1
 
             # don't carp if sell price is higher than EMA
-            if price < mid_ema:
+            if price < fair_value:
                 continue
 
             limit = OM.get_rem_sell_size(state, sym)
@@ -325,9 +329,23 @@ class Trader:
 
 
 
-    #calculates EMA of past x days
-    def calc_ema(self, ser : pd.Series, span : int):
-        return ser.ewm(span=span, adjust=False).mean().iloc[-1]
+    def should_calc_mid_from_order_book(self, buys: List[Tuple[Price, Position]], sells: List[Tuple[Price, Position]]):
+        """ Checks if we should calculate the fair value using the mid of the order book
+        - Gets the buy and sell orders with the maximum size
+        - Checks if the maximum size is >= 15 for both buy/sell, and checks if the width is from 6 to 8 
+        - If yes, return prices of max size buy/sell from order book, else return None
+        """
+        max_size_buy_tuple = max(buys, key=lambda x:x[1])
+        max_size_buy_price, max_size_buy_size = max_size_buy_tuple[0], max_size_buy_tuple[1]
+        max_size_sell_tuple = max(sells, key=lambda x:x[1])  
+        max_size_sell_price, max_size_sell_size = max_size_sell_tuple[0], max_size_sell_tuple[1]
+        width = max_size_sell_price - max_size_buy_price
+
+        if (width in range(6,9) and max_size_buy_size >= 15 and max_size_sell_size >= 15):
+            return max_size_buy_price, max_size_sell_price
+        else:
+            return None, None
+
 
 
     def close_positions(self, state: TradingState):
