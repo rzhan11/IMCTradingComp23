@@ -27,6 +27,7 @@ PARAMS = {
 
     # market-making params
     "is_penny": False,
+    "match_size": False,
 
     # how many historical data points to use for analysis
     "DM.lookback": 100,
@@ -37,7 +38,8 @@ PARAMS = {
     # how many days to test EMA against true
     "DM.ema_test_days": 100,
 
-    "DM.ema_spans": [3, 10, 21, 100],
+    "DM.ema_spans": [21],
+    # "DM.ema_spans": [3, 10, 21, 100],
     # "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
 }
 
@@ -96,6 +98,7 @@ class Trader:
         self.time_step = PARAMS["time_step"]
 
         self.is_penny = PARAMS["is_penny"]
+        self.match_size = PARAMS["match_size"]
 
 
     def turn_start(self, state: TradingState):
@@ -287,10 +290,15 @@ class Trader:
 
             limit = OM.get_rem_buy_size(state, sym)
             if limit > 0:
+                if self.match_size:
+                    order_quantity = min(limit, quantity)
+                else:
+                    order_quantity = limit
+
                 OM.place_buy_order(Order(
                     symbol=sym,
                     price=price,
-                    quantity=min(limit, quantity)
+                    quantity=order_quantity,
                 ))
 
         # match orders on sell-side
@@ -304,10 +312,15 @@ class Trader:
 
             limit = OM.get_rem_sell_size(state, sym)
             if limit > 0:
+                if self.match_size:
+                    order_quantity = min(limit, quantity)
+                else:
+                    order_quantity = limit
+
                 OM.place_sell_order(Order(
                     symbol=sym,
                     price=price,
-                    quantity=min(limit, quantity)
+                    quantity=order_quantity,
                 ))
 
 
@@ -477,7 +490,7 @@ class DataManager:
 
                 ema_preds = [sym_history[-(i + self.ema_eval_true_days + 1)]["emas"][span] for i in range(len(smas))]
                 ema_preds = list(reversed(ema_preds))
-                print(ema_preds)
+                # print(ema_preds)
 
                 # compare true SMA vs pred EMA
                 diffs = abs(smas - ema_preds)
