@@ -213,7 +213,7 @@ class Trader:
             if (max_size_buy_price != None and max_size_sell_price != None):
                 # mid price is the middle of largest buy/sell orders with the largest size
                 fair_value = (max_size_buy_price + max_size_sell_price)/2
-            
+
             self.take_logic(
                 state=state,
                 sym=sym,
@@ -341,7 +341,7 @@ class Trader:
         max_size_sell_price, max_size_sell_size = max_size_sell_tuple[0], max_size_sell_tuple[1]
         width = max_size_sell_price - max_size_buy_price
 
-        if (width in range(6,9) and max_size_buy_size >= 15 and max_size_sell_size >= 15):
+        if (width in range(6,12) and max_size_buy_size >= 15 and max_size_sell_size >= 15):
             return max_size_buy_price, max_size_sell_price
         else:
             return None, None
