@@ -202,16 +202,17 @@ class Trader:
             sells: List[Tuple[Price, Position]] = sorted(list(book.sell_orders.items()), reverse=False)
 
             self.all_buys[sym] = buys            
-            self.all_sells[sym] = sells       
+            self.all_sells[sym] = sells 
 
             # calc fair value
-            fair_value = self.get_fair_value(sym)     
+            fair_value = self.get_fair_value(sym)   
+            mid_ema = self.get_ema_mid(sym)  
 
             self.take_logic(
                 state=state,
                 sym=sym,
                 fair_value=fair_value,
-                ema=mid_ema
+                ema=mid_ema,
             )
 
             self.make_logic(
@@ -221,14 +222,22 @@ class Trader:
             )
 
 
-    def get_fair_value(self, sym: Symbol) -> float:
-
-        buys, sells = self.all_buys[sym], self.all_sells[sym]
+    def get_ema_mid(self, sym: Symbol) -> float:
         
         # calc mid_ema
         sym_history = self.DM.history[sym]
         mid_ema = sym_history[-1]["best_ema"]
         mid_ema_span = sym_history[-1]["best_ema_span"]
+
+        return mid_ema
+
+
+
+    def get_fair_value(self, sym: Symbol) -> float:
+
+        buys, sells = self.all_buys[sym], self.all_sells[sym]
+
+        mid_ema = self.get_ema_mid(sym)
 
         # get large_quote_mid
         large_quote_mid, use_large_quote_mid = self.get_large_quote_mid(sym)
@@ -258,7 +267,8 @@ class Trader:
 
         # take orders on buy_side (we sell to existing buy orders)
         for price, quantity in buys:
-            if price > fair_value + min_buy_edge or price > ema:
+            if price > fair_value + min_buy_edge:
+            # if price > fair_value + min_buy_edge or price > ema:
                 limit = OM.get_rem_sell_size(state, sym)
                 if limit > 0:
                     OM.place_sell_order(Order(
@@ -269,7 +279,8 @@ class Trader:
 
         # take orders on sell side (we buy from existing sell orders)
         for price, quantity in sells:
-            if price < fair_value - min_sell_edge or price < ema:
+            if price < fair_value - min_sell_edge:
+            # if price < fair_value - min_sell_edge or price < ema:
                 limit = OM.get_rem_buy_size(state, sym)
                 if limit > 0:
                     OM.place_buy_order(Order(
