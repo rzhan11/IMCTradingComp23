@@ -29,6 +29,8 @@ PARAMS = {
     "is_penny": True,
     "match_size": False,
 
+    "min_take_edge": 0.25,
+
     # how many historical data points to use for analysis
     "DM.lookback": 100,
 
@@ -99,6 +101,7 @@ class Trader:
 
         self.is_penny = PARAMS["is_penny"]
         self.match_size = PARAMS["match_size"]
+        self.min_take_edge  = PARAMS["min_take_edge"]
 
 
     def turn_start(self, state: TradingState):
@@ -185,7 +188,8 @@ class Trader:
             self.close_positions(state)
             return
 
-
+        self.all_buys = {}
+        self.all_sells = {}
 
         # Iterate over all the keys (the available products) contained in the order depths
         for sym in state.order_depths.keys():
@@ -197,52 +201,58 @@ class Trader:
             buys: List[Tuple[Price, Position]] = sorted(list(book.buy_orders.items()), reverse=True)
             sells: List[Tuple[Price, Position]] = sorted(list(book.sell_orders.items()), reverse=False)
 
-            
+            self.all_buys[sym] = buys            
+            self.all_sells[sym] = sells       
 
-            # book_tops = self.DM.book_tops
-            sym_history = self.DM.history[sym]
-
-            mid_ema = sym_history[-1]["best_ema"]
-            mid_ema_span = sym_history[-1]["best_ema_span"]
-            print(f"{sym} EMA (span: {mid_ema_span}), {mid_ema}")
-
-            fair_value = mid_ema
-
-            # check if can calculate the fair value using the order book
-            max_size_buy_price, max_size_sell_price = self.should_calc_mid_from_order_book(buys, sells)
-            if (max_size_buy_price != None and max_size_sell_price != None):
-                # mid price is the middle of largest buy/sell orders with the largest size
-                fair_value = (max_size_buy_price + max_size_sell_price)/2
+            # calc fair value
+            fair_value = self.get_fair_value(sym)     
 
             self.take_logic(
                 state=state,
                 sym=sym,
-                buys=buys,
-                sells=sells, 
                 fair_value=fair_value,
             )
 
             self.make_logic(
                 state=state,
                 sym=sym,
-                buys=buys,
-                sells=sells, 
                 fair_value=fair_value,
             )
+
+
+    def get_fair_value(self, sym: Symbol) -> float:
+
+        buys, sells = self.all_buys[sym], self.all_sells[sym]
+        
+        # calc mid_ema
+        sym_history = self.DM.history[sym]
+        mid_ema = sym_history[-1]["best_ema"]
+        mid_ema_span = sym_history[-1]["best_ema_span"]
+
+        # get large_quote_mid
+        large_quote_mid, use_large_quote_mid = self.get_large_quote_mid(sym)
+
+        # if conditions were good, use large_quote_mid
+        if use_large_quote_mid:
+            return large_quote_mid
+        else: # else, use ema
+            return mid_ema
+        
+
 
 
     def take_logic(self, 
             state: TradingState,
             sym: Symbol, 
-            buys: List[Tuple[Price, Position]], 
-            sells: List[Tuple[Price, Position]], 
             fair_value: float,
             ):
         
+        buys, sells = self.all_buys[sym], self.all_sells[sym]
         OM = self.OM
-
-        min_buy_edge = 1
-        min_sell_edge = 1
+        
+        # min edge params
+        min_buy_edge = self.min_take_edge
+        min_sell_edge = self.min_take_edge
 
         # take orders on buy_side (we sell to existing buy orders)
         for price, quantity in buys:
@@ -269,11 +279,10 @@ class Trader:
     def make_logic(self, 
             state: TradingState,
             sym: Symbol, 
-            buys: List[Tuple[Price, Position]], 
-            sells: List[Tuple[Price, Position]], 
             fair_value: float,
             ):
         
+        buys, sells = self.all_buys[sym], self.all_sells[sym]
         OM = self.OM
 
         should_penny = False
@@ -329,22 +338,26 @@ class Trader:
 
 
 
-    def should_calc_mid_from_order_book(self, buys: List[Tuple[Price, Position]], sells: List[Tuple[Price, Position]]):
+    def get_large_quote_mid(self, sym):
         """ Checks if we should calculate the fair value using the mid of the order book
         - Gets the buy and sell orders with the maximum size
         - Checks if the maximum size is >= 15 for both buy/sell, and checks if the width is from 6 to 8 
         - If yes, return prices of max size buy/sell from order book, else return None
         """
-        max_size_buy_tuple = max(buys, key=lambda x:x[1])
-        max_size_buy_price, max_size_buy_size = max_size_buy_tuple[0], max_size_buy_tuple[1]
-        max_size_sell_tuple = max(sells, key=lambda x:x[1])  
-        max_size_sell_price, max_size_sell_size = max_size_sell_tuple[0], max_size_sell_tuple[1]
-        width = max_size_sell_price - max_size_buy_price
 
-        if (width in range(6,12) and max_size_buy_size >= 15 and max_size_sell_size >= 15):
-            return max_size_buy_price, max_size_sell_price
-        else:
-            return None, None
+        buys, sells = self.all_buys[sym], self.all_sells[sym]
+        
+        buy_price, buy_size = max(buys, key=lambda x:x[1])
+        sell_price, sell_size = max(sells, key=lambda x:x[1])
+
+        spread = sell_price - buy_price
+        
+        should_use = \
+            6 <= spread <= 11 and \
+            15 <= buy_size <= 35 and \
+            15 <= sell_size <= 35
+        
+        return (buy_price + sell_price) / 2, should_use
 
 
 
@@ -389,15 +402,35 @@ class Trader:
         best_emas = { sym: self.DM.history[sym][-1]["best_ema"] for sym in self.symbols }
         best_ema_spans = { sym: self.DM.history[sym][-1]["best_ema_span"] for sym in self.symbols }
 
+        # get large quote mid data
+        quote_mids_data = { sym: self.get_large_quote_mid(sym) for sym in self.symbols}
+        quote_mids = {sym: mid for sym, (mid, use) in quote_mids_data.items() }
+        use_quote_mids = {sym: use for sym, (mid, use) in quote_mids_data.items() }
+
+        fair_values = { sym: self.get_fair_value(sym) for sym in self.symbols}
 
         obj = {
+            # timing
             "time": state.timestamp,
             "wall_time": time.time() - self.wall_start_time,
             "process_time": time.process_time() - self.process_start_time,
+
+            # my orders
             "my_orders": my_orders,
+
+            ### fair values ###
+
+            # ema
             "emas": emas,
             "best_emas": best_emas,
             "best_ema_spans": best_ema_spans,
+
+            # large quote mid
+            "quote_mids": quote_mids,
+            "use_quote_mids": use_quote_mids,
+
+            # fair value
+            "fair_values": fair_values,
         }
 
 
