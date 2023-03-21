@@ -18,7 +18,7 @@ MAX_POS = {
 
 PARAMS = {
     # game parameters
-    "max_timestamp": 200000,
+    "max_timestamp": 100000,
     "time_step": 100,
 
     # auto-close 
