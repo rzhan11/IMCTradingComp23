@@ -8,8 +8,19 @@ def process_file(fname, start_sep, end_sep):
 
     print("Reading from input file", input_file)
     with open(input_file, "r") as f:
-        text = f.read()
+        lines = f.readlines()
+        
+    texts = []
+    for line in lines:
+        words = line.split(" ", 1)
 
+        if words[0].startswith("{"):
+            texts += [line]
+        elif len(words) == 2:
+            if words[1].startswith("{"):
+                texts += [words[1]]
+
+    text = "\n".join([json.loads(text)["logs"] for text in texts])
 
     # split on start_sep
     splits = text.split(start_sep)
@@ -20,16 +31,11 @@ def process_file(fname, start_sep, end_sep):
     # split on end_sep
     splits = [s.split(end_sep) for s in splits]
 
-    # only keep before end_sep
+    # # only keep before end_sep
     splits = [s[0] for s in splits]
     splits = [json.loads(s) for s in splits]
 
+
+
     return splits
 
-
-    # output_file = input_file.parents[0] / (input_file.name + ".rec.json") 
-
-    # print("Writing to output file", output_file)
-
-    # with open(output_file, "w") as f:
-    #     json.dump(splits, f)

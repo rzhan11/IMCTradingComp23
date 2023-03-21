@@ -3,8 +3,8 @@ import numpy as np
 import json
 import time
 
-from typing import Dict, List, Tuple
-from datamodel import OrderDepth, TradingState, Order, Listing
+from typing import Dict, List, Tuple, Any
+from datamodel import OrderDepth, TradingState, Order, Listing, ProsperityEncoder
 from datamodel import Symbol, Product, Position
 
 
@@ -61,6 +61,33 @@ dynamic EMA
 - no closing at end of game
 """
 
+
+class Logger:
+    def __init__(self) -> None:
+        self.logs = ""
+
+    def print(self, *objects: Any, sep: str = " ", end: str = "\n") -> None:
+        self.logs += sep.join(map(str, objects)) + end
+
+    def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
+        logs = self.logs
+        if logs.endswith("\n"):
+            logs = logs[:-1]
+
+        _print(json.dumps({
+            "state": state,
+            "orders": orders,
+            "logs": logs,
+        }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
+
+        self.state = None
+        self.orders = {}
+        self.logs = ""
+
+
+logger = Logger()
+_print = print
+print = logger.print
 
 class Trader:
 
@@ -145,14 +172,26 @@ class Trader:
     def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
         """ Called by game engine, returns dict of buy/sell orders
         """
-        # turn setup
-        self.turn_start(state)
 
-        # main body
-        self.run_internal(state)
+        _print()
 
-        # cleanup / info reporting section
-        return self.turn_end(state)
+        state_json = json.loads(state.toJSON())
+
+        try:
+        
+            # turn setup
+            self.turn_start(state)
+
+            # main body
+            self.run_internal(state)
+
+            # cleanup / info reporting section
+            orders = self.turn_end(state)
+        
+        finally:
+            logger.flush(state_json, orders)
+
+        return orders
     
 
     def turn_end(self, state):
@@ -297,6 +336,44 @@ class Trader:
         
         buys, sells = self.all_buys[sym], self.all_sells[sym]
         OM = self.OM
+        prod = state.listings[sym].product
+
+        # """ If we have high positions, place good orders at the money """
+
+        # # estimate position after taker trades occur
+        # pos_estimate = state.position[prod] + OM._get_cur_order_buy_size(sym) - OM._get_cur_order_sell_size(sym)
+        # pos_limit = self._position_limits[prod]
+        # limit_goal = int(1/3 * pos_limit)
+
+        # buy_limit = pos_limit - pos_estimate
+        # sell_limit = pos_limit - (-pos_estimate)
+
+        # # can't buy, place good sells
+        # if buy_limit < limit_goal:
+        #     limit = OM.get_max_sell_size(state, sym)
+
+        #     price = np.ceil(fair_value)
+        #     quantity = min(limit_goal - buy_limit, limit)
+
+        #     OM.place_sell_order(Order(
+        #         symbol=sym,
+        #         price=price,
+        #         quantity=quantity,
+        #     ))
+
+        # # can't sell, place good buys
+        # if sell_limit < limit_goal:
+        #     limit = OM.get_max_buy_size(state, sym)
+
+        #     price = np.floor(fair_value)
+        #     quantity = min(limit_goal - sell_limit, limit)
+
+        #     OM.place_buy_order(Order(
+        #         symbol=sym,
+        #         price=price,
+        #         quantity=quantity,
+        #     ))
+
 
         should_penny = False
         if self.is_penny:
@@ -304,6 +381,7 @@ class Trader:
                 spread = sells[0][0] - buys[0][0]
                 if spread > 2:
                     should_penny = True
+
 
         # match orders on buy-side
         for price, quantity in buys:
