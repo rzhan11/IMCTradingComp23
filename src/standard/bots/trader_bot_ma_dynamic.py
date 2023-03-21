@@ -40,7 +40,7 @@ PARAMS = {
     # how many days to test EMA against true
     "DM.ema_test_days": 100,
 
-    "DM.ema_spans": [10],
+    "DM.ema_spans": [21],
     # "DM.ema_spans": [3, 10, 21, 100],
     # "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
 }
@@ -266,15 +266,13 @@ class Trader:
         # calc mid_ema
         sym_history = self.DM.history[sym]
         mid_ema = sym_history[-1]["best_ema"]
-        mid_ema_span = sym_history[-1]["best_ema_span"]
+        # mid_ema_span = sym_history[-1]["best_ema_span"]
 
         return mid_ema
 
 
 
     def get_fair_value(self, sym: Symbol) -> float:
-
-        buys, sells = self.all_buys[sym], self.all_sells[sym]
 
         mid_ema = self.get_ema_mid(sym)
 
