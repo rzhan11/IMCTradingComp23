@@ -38,7 +38,7 @@ PARAMS = {
     # how many days to test EMA against true
     "DM.ema_test_days": 100,
 
-    "DM.ema_spans": [21],
+    "DM.ema_spans": [10],
     # "DM.ema_spans": [3, 10, 21, 100],
     # "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
 }
@@ -220,6 +220,7 @@ class Trader:
                 buys=buys,
                 sells=sells, 
                 fair_value=fair_value,
+                ema=mid_ema
             )
 
             self.make_logic(
@@ -237,6 +238,7 @@ class Trader:
             buys: List[Tuple[Price, Position]], 
             sells: List[Tuple[Price, Position]], 
             fair_value: float,
+            ema: float,
             ):
         
         OM = self.OM
@@ -246,7 +248,7 @@ class Trader:
 
         # take orders on buy_side (we sell to existing buy orders)
         for price, quantity in buys:
-            if price > fair_value + min_buy_edge:
+            if price > fair_value + min_buy_edge or price > ema:
                 limit = OM.get_rem_sell_size(state, sym)
                 if limit > 0:
                     OM.place_sell_order(Order(
@@ -257,7 +259,7 @@ class Trader:
 
         # take orders on sell side (we buy from existing sell orders)
         for price, quantity in sells:
-            if price < fair_value - min_sell_edge:
+            if price < fair_value - min_sell_edge or price < ema:
                 limit = OM.get_rem_buy_size(state, sym)
                 if limit > 0:
                     OM.place_buy_order(Order(
