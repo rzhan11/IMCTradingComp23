@@ -364,7 +364,14 @@ class Trader:
                         price=price,
                         quantity=take_size,
                     ))
-            
+
+                #update order book
+                top_buy_price, top_buy_size = self.all_buys[sym][0]
+                self.all_buys[sym][0] = (top_buy_price, top_buy_size - take_size)
+                # if the updated size is 0, remove it form the order book
+                if self.all_buys[sym][0][1] == 0:
+                    self.all_buys[sym].pop(0)
+
             # only take top orders
             break
 
@@ -395,6 +402,14 @@ class Trader:
                         price=price,
                         quantity=take_size,
                     ))
+
+                #update order book
+                top_sell_price, top_sell_size = self.all_sells[sym][0]
+                self.all_sells[sym][0] = (top_sell_price, top_sell_size - take_size)
+                # if the updated size is 0, remove it form the order book
+                if self.all_sells[sym][0][1] == 0:
+                    self.all_sells[sym].pop(0)
+
             
             # only take top orders
             break
