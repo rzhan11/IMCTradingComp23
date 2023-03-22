@@ -76,10 +76,8 @@ class Logger:
             logs = logs[:-1]
 
         if PRINT_OURS:
-            _print(json.dumps({
-                "logs": logs,
-            }))
-        else:
+            _print(logs)
+        else: # print jaspers
             _print(json.dumps({
                 "state": state,
                 "orders": orders,
