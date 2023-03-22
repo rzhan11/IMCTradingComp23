@@ -449,55 +449,129 @@ class Trader:
 
         should_penny = False
         if self.is_penny:
-            if len(buys) > 0 and len(sells) > 0:
-                spread = sells[0][0] - buys[0][0]
-                if spread > 2:
-                    should_penny = True
+            # if len(buys) > 0 and len(sells) > 0:
+            #     spread = sells[0][0] - buys[0][0]
+            #     if spread > 2:
+                    # should_penny     = True
+            should_penny = True
+                    
 
+        OPP_COST = {-20: -13.69493551596868, -19: -12.258119556101832, -18: -10.98456122544886, -17: -9.797522305573082, -16: -8.683266589330898, -15: -7.63237866608366, -14: -6.647199549913658, -13: -5.720309266692325, -12: -4.862582055361315, -11: -4.0746754551598485, -10: -3.358684856312479, -9: -2.7123944567477807, -8: -2.1353278669799636, -7: -1.6303401867847498, -6: -1.1964833740941003, -5: -0.8272137957042247, -4: -0.5260984126239094, -3: -0.29414555619867144, -2: -0.13028544440975764, -1: -0.03224199450426113, 0: 0.0, 1: -0.03224199450426113, 2: -0.13028544440975764, 3: -0.29414555619867144, 4: -0.5260984126239094, 5: -0.8272137957042247, 6: -1.1964833740941003, 7: -1.6303401867847498, 8: -2.1353278669799636, 9: -2.7123944567477807, 10: -3.358684856312479, 11: -4.0746754551598485, 12: -4.862582055361315, 13: -5.720309266692325, 14: -6.647199549913658, 15: -7.63237866608366, 16: -8.683266589330898, 17: -9.797522305573082, 18: -10.98456122544886, 19: -12.258119556101832, 20: -13.69493551596868}
 
-        # match orders on buy-side
         for price, quantity in buys:
             if should_penny:
                 price += 1
 
-            # don't carp if buy price is higher than EMA
-            if price > fair_value:
-                continue
-
+            cur_pos = state.position[sym]
             limit = OM.get_rem_buy_size(state, sym)
-            if limit > 0:
-                if self.match_size:
-                    order_quantity = min(limit, quantity)
-                else:
-                    order_quantity = limit
 
-                OM.place_buy_order(Order(
-                    symbol=sym,
-                    price=price,
-                    quantity=order_quantity,
-                ))
+            # max_buy_size = min(limit, quantity)
+            max_buy_size = limit
 
-        # match orders on sell-side
+            scores = []
+            for buy_size in range(0, max_buy_size + 1):
+                # we are putting buy orders
+                new_pos = cur_pos + buy_size
+
+                opp_change = OPP_COST[new_pos] - OPP_COST[cur_pos]
+                edge = fair_value - price
+                adj_rtn = edge * buy_size + opp_change
+
+                scores += [(adj_rtn, buy_size)]
+
+            # get the size with the optimal expected adjusted return
+            if len(scores) > 0:
+                adj_rtn, buy_size = max(scores)
+                if adj_rtn >= 0 and buy_size > 0:
+                    OM.place_buy_order(Order(
+                        symbol=sym,
+                        price=price,
+                        quantity=buy_size,
+                    ))
+            
+            # only carp top orders
+            break
+
         for price, quantity in sells:
             if should_penny:
                 price -= 1
 
-            # don't carp if sell price is higher than EMA
-            if price < fair_value:
-                continue
-
+            cur_pos = state.position[sym]
             limit = OM.get_rem_sell_size(state, sym)
-            if limit > 0:
-                if self.match_size:
-                    order_quantity = min(limit, quantity)
-                else:
-                    order_quantity = limit
 
-                OM.place_sell_order(Order(
-                    symbol=sym,
-                    price=price,
-                    quantity=order_quantity,
-                ))
+            # max_sell_size = min(limit, quantity)
+            max_sell_size = limit
+
+            scores = []
+            for sell_size in range(0, max_sell_size + 1):
+                # we are putting sell orders
+                new_pos = cur_pos - sell_size
+
+                opp_change = OPP_COST[new_pos] - OPP_COST[cur_pos]
+                edge = price - fair_value
+                adj_rtn = edge * sell_size + opp_change
+
+                scores += [(adj_rtn, sell_size)]
+
+            # get the size with the optimal expected adjusted return
+            if len(scores) > 0:
+                adj_rtn, sell_size = max(scores)
+                if adj_rtn >= 0 and sell_size > 0:
+                    OM.place_sell_order(Order(
+                        symbol=sym,
+                        price=price,
+                        quantity=sell_size,
+                    ))
+            
+            # only carp top orders
+            break
+
+
+        # # match orders on buy-side
+        # for price, quantity in buys:
+        #     if should_penny:
+        #         price += 1
+
+        #     # don't carp if buy price is higher than EMA
+        #     if price > fair_value:
+        #         continue
+
+        #     limit = OM.get_rem_buy_size(state, sym)
+        #     if limit > 0:
+        #         if self.match_size:
+        #             order_quantity = min(limit, quantity)
+        #         else:
+        #             order_quantity = limit
+
+        #         OM.place_buy_order(Order(
+        #             symbol=sym,
+        #             price=price,
+        #             quantity=order_quantity,
+        #         ))
+
+        # # match orders on sell-side
+        # for price, quantity in sells:
+        #     if should_penny:
+        #         price -= 1
+
+        #     # don't carp if sell price is higher than EMA
+        #     if price < fair_value:
+        #         continue
+
+        #     limit = OM.get_rem_sell_size(state, sym)
+        #     if limit > 0:
+        #         if self.match_size:
+        #             order_quantity = min(limit, quantity)
+        #         else:
+        #             order_quantity = limit
+
+        #         OM.place_sell_order(Order(
+        #             symbol=sym,
+        #             price=price,
+        #             quantity=order_quantity,
+        #         ))
+
+
 
 
 
