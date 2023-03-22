@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import json
 import time
+import traceback
 
 from typing import Dict, List, Tuple, Any
 from datamodel import OrderDepth, TradingState, Order, Listing, ProsperityEncoder
@@ -189,7 +190,7 @@ class Trader:
 
         state_json = json.loads(state.toJSON())
 
-        orders = None
+        orders = []
 
         try:
         
@@ -201,11 +202,15 @@ class Trader:
 
             # cleanup / info reporting section
             orders = self.turn_end(state)
+            
+
+        # failsafe - to be commented during debug
+        # except Exception:
+        #     traceback.print_exc()
         
         finally:
             logger.flush(state_json, orders)
-
-        return orders
+            return orders
     
 
     def turn_end(self, state):
