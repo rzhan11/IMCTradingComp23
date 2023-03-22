@@ -18,8 +18,10 @@ PRINT_OURS = True
 MAX_POS = {
     "PEARLS": 20,
     "BANANAS": 20,
-    "COCONUTS": 600,
-    "PINA_COLADAS": 300,
+    # "COCONUTS": 600,
+    # "PINA_COLADAS": 300,
+    "COCONUTS": 300,
+    "PINA_COLADAS": 150,
 }
 
 PARAMS = {
@@ -32,7 +34,12 @@ PARAMS = {
     "close_turns": 30,
 
     # market-making params
-    "is_penny": True,
+    "is_penny": {
+        "PEARLS": True,
+        "BANANAS": True,
+        "COCONUTS": False,
+        "PINA_COLADAS": False,
+    },
     "match_size": False,
 
     "min_take_edge": 0.25,
@@ -49,6 +56,33 @@ PARAMS = {
     "DM.ema_spans": [21],
     # "DM.ema_spans": [3, 10, 21, 100],
     # "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
+}
+
+WHALE_QUOTE_BOUNDS = {
+    "BANANAS": {
+        "spread": (6, 11), # (6, 7)
+        "size": (13, 40), # (20, 40)
+    },
+    "PEARLS": {
+        "spread": (6, 11), # (10, 10)
+        "size": (15, 35), # (20, 30)
+    },
+    # "COCONUTS": {
+    #     "spread": (6, 11), # (6, 7)
+    #     "size": (15, 35), # (20, 35)
+    # },
+    # "PINA_COLADAS": {
+    #     "spread": (6, 11), # (10, 10)
+    #     "size": (15, 35), # (20, 30)
+    # },
+    "COCONUTS": {
+        "spread": (2, 4), # (3, 3)
+        "size": (80, 300), # (100, 250)
+    },
+    "PINA_COLADAS": {
+        "spread": (2, 5), # (3, 4)
+        "size": (40, 150), # (50, 120)
+    },
 }
 
 
@@ -79,9 +113,13 @@ def _get_desc():
     PARAMS:
     {json.dumps(PARAMS, indent=2)}
 
-    OPP_COSTS:
+    WHALE_QUOTE_BOUNDS:
+    {json.dumps(WHALE_QUOTE_BOUNDS, indent=2)}
+
+    REF_OPP_COSTS:
     {REF_OPP_COSTS}
 
+    
     Description:
     dynamic EMA
 
@@ -511,7 +549,7 @@ class Trader:
 
 
         should_penny = False
-        if self.is_penny:
+        if self.is_penny[sym]:
             # if len(buys) > 0 and len(sells) > 0:
             #     spread = sells[0][0] - buys[0][0]
             #     if spread > 2:
@@ -640,33 +678,6 @@ class Trader:
         - Checks if the maximum size is >= 15 for both buy/sell, and checks if the width is from 6 to 8 
         - If yes, return prices of max size buy/sell from order book, else return None
         """
-
-        WHALE_QUOTE_BOUNDS = {
-            "BANANAS": {
-                "spread": (6, 11), # (6, 7)
-                "size": (15, 35), # (20, 35)
-            },
-            "PEARLS": {
-                "spread": (6, 11), # (10, 10)
-                "size": (15, 35), # (20, 30)
-            },
-            # "COCONUTS": {
-            #     "spread": (6, 11), # (6, 7)
-            #     "size": (15, 35), # (20, 35)
-            # },
-            # "PINA_COLADAS": {
-            #     "spread": (6, 11), # (10, 10)
-            #     "size": (15, 35), # (20, 30)
-            # },
-            "COCONUTS": {
-                "spread": (2, 4), # (3, 3)
-                "size": (80, 300), # (100, 250)
-            },
-            "PINA_COLADAS": {
-                "spread": (2, 5), # (3, 4)
-                "size": (40, 150), # (50, 120)
-            },
-        }
 
         quote_bounds = WHALE_QUOTE_BOUNDS[sym]
         spread_lb, spread_ub = quote_bounds["spread"]
