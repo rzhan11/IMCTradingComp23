@@ -348,8 +348,8 @@ class Trader:
 
 
         # take orders on buy_side (we sell to existing buy orders)
-        for price, quantity in buys:
-            cur_pos = state.position[sym]
+        for index, (price, quantity) in enumerate(buys):
+            cur_pos = OM.get_expected_pos(state, prod)
             limit = OM.get_rem_sell_size(state, sym)
 
             max_take_size = min(limit, quantity)
@@ -374,20 +374,22 @@ class Trader:
                         price=price,
                         quantity=take_size,
                     ))
+                    OM.update_expected_change(
+                        prod=prod,
+                        change=-1 * take_size,
+                    )
 
-                #update order book
-                top_buy_price, top_buy_size = self.all_buys[sym][0]
-                self.all_buys[sym][0] = (top_buy_price, top_buy_size - take_size)
-                # if the updated size is 0, remove it form the order book
-                if self.all_buys[sym][0][1] == 0:
-                    self.all_buys[sym].pop(0)
+                # delete it
+                top_buy_price, top_buy_size = buys[index]
+                buys[index] = (top_buy_price, top_buy_size - take_size)
 
-            # only take top orders
-            break
+        # remove extraneous buys
+        self.all_buys[sym] = [(p, q) for p, q in buys if q != 0]
+
 
         # take orders on sell_side (we buy from existing sellers)
-        for price, quantity in sells:
-            cur_pos = state.position[sym]
+        for index, (price, quantity) in enumerate(sells):
+            cur_pos = OM.get_expected_pos(state, prod)
             limit = OM.get_rem_buy_size(state, sym)
 
             max_take_size = min(limit, quantity)
@@ -412,17 +414,18 @@ class Trader:
                         price=price,
                         quantity=take_size,
                     ))
+                    OM.update_expected_change(
+                        prod=prod,
+                        change=+1 * take_size,
+                    )
 
-                #update order book
-                top_sell_price, top_sell_size = self.all_sells[sym][0]
-                self.all_sells[sym][0] = (top_sell_price, top_sell_size - take_size)
-                # if the updated size is 0, remove it form the order book
-                if self.all_sells[sym][0][1] == 0:
-                    self.all_sells[sym].pop(0)
+                # delete it
+                top_sell_price, top_sell_size = sells[index]
+                sells[index] = (top_sell_price, top_sell_size - take_size)
 
-            
-            # only take top orders
-            break
+        # remove extraneous sells
+        self.all_sells[sym] = [(p, q) for p, q in sells if q != 0]
+
                 
 
     def make_logic(self, 
@@ -451,7 +454,7 @@ class Trader:
             if should_penny:
                 price += 1
 
-            cur_pos = state.position[prod]
+            cur_pos = OM.get_expected_pos(state, prod)
             limit = OM.get_rem_buy_size(state, sym)
 
             # max_buy_size = min(limit, quantity)
@@ -483,7 +486,7 @@ class Trader:
             if should_penny:
                 price -= 1
 
-            cur_pos = state.position[prod]
+            cur_pos = OM.get_expected_pos(state, prod)
             limit = OM.get_rem_sell_size(state, sym)
 
             # max_sell_size = min(limit, quantity)
@@ -798,6 +801,7 @@ class OrderManager:
         self._buy_orders : Dict[Symbol, List[Order]] = {sym: [] for sym in symbols}
         self._sell_orders : Dict[Symbol, List[Order]] = {sym: [] for sym in symbols}
         self._position_limits = position_limits
+        self._expected_change : Dict[Symbol, Position] = {sym: 0 for sym in symbols}
 
 
     def place_buy_order(self, order: Order):
@@ -850,6 +854,16 @@ class OrderManager:
         orders = self._sell_orders[sym]
         return sum([ord.quantity for ord in orders])
 
+
+    def update_expected_change(self, prod: Product, change: int) -> None:
+        self._expected_change[prod] += change
+
+
+    def get_expected_pos(self, state: TradingState, prod: Product) -> int:
+        """ Returns expected position of a product, given that we are 
+        """
+
+        return state.position[prod] + self._expected_change[prod]
 
 
 
