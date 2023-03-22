@@ -10,6 +10,7 @@ from datamodel import Symbol, Product, Position
 
 Price = int
 
+PRINT_OURS = True
 
 MAX_POS = {
     "PEARLS": 20,
@@ -74,11 +75,16 @@ class Logger:
         if logs.endswith("\n"):
             logs = logs[:-1]
 
-        _print(json.dumps({
-            "state": state,
-            "orders": orders,
-            "logs": logs,
-        }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
+        if PRINT_OURS:
+            _print(json.dumps({
+                "logs": logs,
+            }))
+        else:
+            _print(json.dumps({
+                "state": state,
+                "orders": orders,
+                "logs": "",
+            }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
 
         self.state = None
         self.orders = {}
@@ -173,7 +179,7 @@ class Trader:
         """ Called by game engine, returns dict of buy/sell orders
         """
 
-        _print()
+        _print("_"*100)
 
         state_json = json.loads(state.toJSON())
 
@@ -335,48 +341,66 @@ class Trader:
 
         # take orders on buy_side (we sell to existing buy orders)
         for price, quantity in buys:
-            curr_pos = state.position[sym]
+            cur_pos = state.position[sym]
             limit = OM.get_rem_sell_size(state, sym)
-            adjusted_return_arr = []
-            for sell_size in range(1, min(limit, quantity)+1):
-                opp_change = OPP_COST[curr_pos-sell_size] - OPP_COST[curr_pos]
-                edge = fair_value - price
-                adjusted_return = edge*sell_size + opp_change
-                adjusted_return_arr.append((adjusted_return, sell_size))
-            
+
+            max_take_size = min(limit, quantity)
+
+            scores = []
+            for take_size in range(0, max_take_size + 1):
+                # we are selling
+                new_pos = cur_pos - take_size
+
+                opp_change = OPP_COST[new_pos] - OPP_COST[cur_pos]
+                edge = price - fair_value
+                adj_rtn = edge * take_size + opp_change
+
+                scores += [(adj_rtn, take_size)]
+
             # get the size with the optimal expected adjusted return
-            if len(adjusted_return_arr) > 0:
-                adjusted_return_arr.sort()
-                adj_return, opt_size = adjusted_return_arr[0]
-                if adj_return >= 0 and opt_size > 0:
+            if len(scores) > 0:
+                adj_rtn, take_size = max(scores)
+                if adj_rtn >= 0 and take_size > 0:
                     OM.place_sell_order(Order(
                         symbol=sym,
                         price=price,
-                        quantity=opt_size
+                        quantity=take_size,
                     ))
-                
+            
+            # only take top orders
+            break
 
-        # take orders on sell side (we buy from existing sell orders)
+        # take orders on sell_side (we buy from existing sellers)
         for price, quantity in sells:
-            curr_pos = state.position[sym]
+            cur_pos = state.position[sym]
             limit = OM.get_rem_buy_size(state, sym)
-            adjusted_return_arr = []
-            for buy_size in range(1, min(limit, quantity)+1):
-                opp_change = OPP_COST[curr_pos+buy_size] - OPP_COST[curr_pos]
-                edge = price - fair_value
-                adjusted_return = edge*buy_size + opp_change
-                adjusted_return_arr.append((adjusted_return, buy_size))
+
+            max_take_size = min(limit, quantity)
+
+            scores = []
+            for take_size in range(0, max_take_size + 1):
+                # we are buying
+                new_pos = cur_pos + take_size
+
+                opp_change = OPP_COST[new_pos] - OPP_COST[cur_pos]
+                edge = fair_value - price
+                adj_rtn = edge * take_size + opp_change
+
+                scores += [(adj_rtn, take_size)]
 
             # get the size with the optimal expected adjusted return
-            if len(adjusted_return_arr) > 0:
-                adjusted_return_arr.sort()
-                adj_return, opt_size = adjusted_return_arr[0]
-                if adj_return >= 0 and opt_size > 0:
+            if len(scores) > 0:
+                adj_rtn, take_size = max(scores)
+                if adj_rtn >= 0 and take_size > 0:
                     OM.place_buy_order(Order(
                         symbol=sym,
                         price=price,
-                        quantity=opt_size
+                        quantity=take_size,
                     ))
+            
+            # only take top orders
+            break
+                
 
     def make_logic(self, 
             state: TradingState,
