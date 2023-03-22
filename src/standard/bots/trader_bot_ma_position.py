@@ -3,6 +3,7 @@ import numpy as np
 import json
 import time
 import traceback
+import copy
 
 from typing import Dict, List, Tuple, Any
 from datamodel import OrderDepth, TradingState, Order, Listing, ProsperityEncoder
@@ -17,6 +18,8 @@ PRINT_OURS = True
 MAX_POS = {
     "PEARLS": 20,
     "BANANAS": 20,
+    "COCONUTS": 600,
+    "PINA_COLADAS": 300,
 }
 
 PARAMS = {
@@ -53,23 +56,48 @@ REF_OPP_COSTS = {
     "BANANAS": {-20: -14.7657647292217, -19: -13.29629710340663, -18: -11.976129707870797, -17: -10.731811549403986, -16: -9.55300207809519, -15: -8.431620448101867, -14: -7.372766144924583, -13: -6.370120709708132, -12: -5.4357848840440965, -11: -4.570192384670548, -10: -3.7789819145585426, -9: -3.061733357707581, -8: -2.4200483551583005, -7: -1.8572060711246365, -6: -1.3698460547685016, -5: -0.9527868395582715, -4: -0.6088603749412016, -3: -0.34176439982319096, -2: -0.151297120607083, -1: -0.03748894542513881, 0: 0.0, 1: -0.03748894542513881, 2: -0.151297120607083, 3: -0.34176439982319096, 4: -0.6088603749412016, 5: -0.9527868395582715, 6: -1.3698460547685016, 7: -1.8572060711246365, 8: -2.4200483551583005, 9: -3.061733357707581, 10: -3.7789819145585426, 11: -4.570192384670548, 12: -5.4357848840440965, 13: -6.370120709708132, 14: -7.372766144924583, 15: -8.431620448101867, 16: -9.55300207809519, 17: -10.731811549403986, 18: -11.976129707870797, 19: -13.29629710340663, 20: -14.7657647292217},
 
     "PEARLS": {-20: -9.358567646428455, -19: -7.989049751739401, -18: -6.8314889942520125, -17: -5.831273378701653, -16: -4.94852483794422, -15: -4.168928678794217, -14: -3.496046552750144, -13: -2.9038189040225575, -12: -2.380425686706502, -11: -1.921814634768623, -10: -1.5229631167164257, -9: -1.1786437884677667, -8: -0.8924477057999951, -7: -0.6589991257793457, -6: -0.46900551524882417, -5: -0.31659342743445507, -4: -0.19758614628661064, -3: -0.1088561356903881, -2: -0.0476532206260174, -1: -0.01183670456754271, 0: 0.0, 1: -0.01183670456754271, 2: -0.0476532206260174, 3: -0.1088561356903881, 4: -0.19758614628661064, 5: -0.31659342743445507, 6: -0.46900551524882417, 7: -0.6589991257793457, 8: -0.8924477057999951, 9: -1.1786437884677667, 10: -1.5229631167164257, 11: -1.921814634768623, 12: -2.380425686706502, 13: -2.9038189040225575, 14: -3.496046552750144, 15: -4.168928678794217, 16: -4.94852483794422, 17: -5.831273378701653, 18: -6.8314889942520125, 19: -7.989049751739401, 20: -9.358567646428455},
+
+    # PINA_COLADAS, COCONUTS are initialized in init_ref_opp_costs()
 }
 
+def init_ref_opp_costs():
+    global REF_OPP_COSTS
 
-_description = f"""
-PARAMS:
-{json.dumps(PARAMS, indent=2)}
+    for sym in ["PINA_COLADAS", "COCONUTS"]:
+        limit = MAX_POS[sym]
+        REF_OPP_COSTS[sym] = {i: 0 for i in range(-limit, limit + 1)}
 
-Description:
-dynamic EMA
+init_ref_opp_costs()
 
-- DataManager lookback=100
 
-- dynamic EMA by measuring how good ema
-    - compare 10, 21, 100
 
-- no closing at end of game
-"""
+def _get_desc():
+    _description = f"""
+    PRINT_OURS:
+    {PRINT_OURS}
+
+    PARAMS:
+    {json.dumps(PARAMS, indent=2)}
+
+    OPP_COSTS:
+    {REF_OPP_COSTS}
+
+    Description:
+    dynamic EMA
+
+    - DataManager lookback=100
+
+    - dynamic EMA by measuring how good ema
+        - compare 10, 21, 100
+
+    - no closing at end of game
+    """
+
+    return _description
+
+
+
+""" setup logging """
 
 
 class Logger:
@@ -97,10 +125,17 @@ class Logger:
         self.orders = {}
         self.logs = ""
 
-
 logger = Logger()
 _print = print
-print = logger.print
+if PRINT_OURS:
+    pass
+else:
+    print = logger.print
+
+
+
+
+""" TRADER Class """
 
 class Trader:
 
@@ -111,7 +146,7 @@ class Trader:
             ):
         
         # print description to help identify bot/params
-        print(_description)
+        print(_get_desc())
 
         # local engine vars
         self._player_id = player_id
@@ -190,27 +225,52 @@ class Trader:
 
         state_json = json.loads(state.toJSON())
 
-        orders = []
+        orders = {}
 
-        try:
+    
+        # turn setup
+        self.turn_start(state)
+
+        # main body
+        self.run_internal(state)
+
+        # cleanup / info reporting section
+        orders = self.turn_end(state)
+        logger.flush(state_json, orders)
+
+    
+        return orders
+
+
+    # def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
+    #     """ Called by game engine, returns dict of buy/sell orders
+    #     """
+
+    #     _print("_"*100)
+
+    #     state_json = json.loads(state.toJSON())
+
+    #     orders = {}
+
+    #     try:
         
-            # turn setup
-            self.turn_start(state)
+    #         # turn setup
+    #         self.turn_start(state)
 
-            # main body
-            self.run_internal(state)
+    #         # main body
+    #         self.run_internal(state)
 
-            # cleanup / info reporting section
-            orders = self.turn_end(state)
+    #         # cleanup / info reporting section
+    #         orders = self.turn_end(state)
             
 
-        # failsafe - to be commented during debug
-        # except Exception:
-        #     traceback.print_exc()
+    #     # failsafe - to be commented during debug
+    #     # except Exception:
+    #     #     traceback.print_exc()
         
-        finally:
-            logger.flush(state_json, orders)
-            return orders
+    #     finally:
+    #         logger.flush(state_json, orders)
+    #         return orders
     
 
     def turn_end(self, state):
@@ -246,14 +306,11 @@ class Trader:
             self.close_positions(state)
             return
 
+        # setup all_buys / all_sells
         self.all_buys = {}
         self.all_sells = {}
 
-        # Iterate over all the keys (the available products) contained in the order depths
         for sym in state.order_depths.keys():
-
-            prod: Product = state.listings[sym].product
-
             book = state.order_depths[sym]
 
             buys: List[Tuple[Price, Position]] = sorted(list(book.buy_orders.items()), reverse=True)
@@ -261,6 +318,15 @@ class Trader:
 
             self.all_buys[sym] = buys            
             self.all_sells[sym] = sells 
+
+        # copy the original buy/sell books (we may change them on the fly)
+        self.orig_all_buys = copy.deepcopy(self.all_buys)
+        self.orig_all_sells = copy.deepcopy(self.all_sells)
+
+        # Iterate over all the keys (the available products) contained in the order depths
+        for sym in state.order_depths.keys():
+
+            prod: Product = state.listings[sym].product
 
             # calc fair value
             fair_value = self.get_fair_value(sym)   
@@ -517,7 +583,7 @@ class Trader:
                         price=price,
                         quantity=sell_size,
                     ))
-            
+        
 
 
         # # match orders on buy-side
@@ -575,7 +641,39 @@ class Trader:
         - If yes, return prices of max size buy/sell from order book, else return None
         """
 
-        buys, sells = self.all_buys[sym], self.all_sells[sym]
+        WHALE_QUOTE_BOUNDS = {
+            "BANANAS": {
+                "spread": (6, 11), # (6, 7)
+                "size": (15, 35), # (20, 35)
+            },
+            "PEARLS": {
+                "spread": (6, 11), # (10, 10)
+                "size": (15, 35), # (20, 30)
+            },
+            # "COCONUTS": {
+            #     "spread": (6, 11), # (6, 7)
+            #     "size": (15, 35), # (20, 35)
+            # },
+            # "PINA_COLADAS": {
+            #     "spread": (6, 11), # (10, 10)
+            #     "size": (15, 35), # (20, 30)
+            # },
+            "COCONUTS": {
+                "spread": (2, 4), # (3, 3)
+                "size": (80, 300), # (100, 250)
+            },
+            "PINA_COLADAS": {
+                "spread": (2, 5), # (3, 4)
+                "size": (40, 150), # (50, 120)
+            },
+        }
+
+        quote_bounds = WHALE_QUOTE_BOUNDS[sym]
+        spread_lb, spread_ub = quote_bounds["spread"]
+        size_lb, size_ub = quote_bounds["size"]
+
+
+        buys, sells = self.orig_all_buys[sym], self.orig_all_sells[sym]
         
         buy_price, buy_size = max(buys, key=lambda x:x[1])
         sell_price, sell_size = max(sells, key=lambda x:x[1])
@@ -583,9 +681,9 @@ class Trader:
         spread = sell_price - buy_price
         
         should_use = \
-            6 <= spread <= 11 and \
-            15 <= buy_size <= 35 and \
-            15 <= sell_size <= 35
+            spread_lb <= spread <= spread_ub and \
+            size_lb <= buy_size <= size_ub and \
+            size_lb <= sell_size <= size_ub
         
         return (buy_price + sell_price) / 2, should_use
 
