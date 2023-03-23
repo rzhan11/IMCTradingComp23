@@ -11,7 +11,7 @@ random.seed(1)
 
 class Fair:
 
-    def __init__(self, products):
+    def __init__(self, products, price_df):
 
         self.products = products
 
@@ -30,7 +30,9 @@ class Fair:
             "COCONUTS": 1.5 / 100,
         }
 
-        self._update_func = self.update_lognormal
+        self.price_df = price_df
+        # self._update_func = self.update_lognormal
+        self._update_func = self.update_mid_price
 
         self.vol_turns = 100
 
@@ -40,9 +42,14 @@ class Fair:
 
     def update_fairs(self, timestamp, turn):
         for prod in self.update_set:
-            self._update_func(prod)
+            self._update_func(timestamp, prod)
 
-
+    # update fair values based on the mid price
+    def update_mid_price(self, timestamp, prod):
+        state = self.price_df[(self.price_df["time"] == timestamp)
+                & (self.price_df["symbol"] == prod)]
+        mid_price = state["mid_price"]
+        self.value[prod] = mid_price.values[-1]
 
     def update_lognormal(self, prod):
         value = self.value[prod]

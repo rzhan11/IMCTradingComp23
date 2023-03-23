@@ -40,6 +40,7 @@ def main(package: str):
         fairs=GS.FAIR,
     )
 
+    # main game loop, one turn for every loop
     for cur_turn, cur_time in enumerate(range(0, GS.MAX_TIME, GS.TIME_STEP)):
 
         eprint(f"Time: {cur_time}, Turn: {cur_turn}")
@@ -48,6 +49,7 @@ def main(package: str):
 
         state.update_fairs(turn=cur_turn)
 
+        # every player does their actions
         for player in GS.PLAYERS:
 
             pid = player._player_id

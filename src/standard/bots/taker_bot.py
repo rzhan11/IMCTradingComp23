@@ -15,7 +15,8 @@ class TakerBot:
             player_id=None, 
             position_limits=None,
             is_main=False,
-            fair_obj=None):
+            fair_obj=None,
+            trade_df=None):
 
         self.turn = -1
         self._player_id = player_id

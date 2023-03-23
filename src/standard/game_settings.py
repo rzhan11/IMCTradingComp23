@@ -1,5 +1,5 @@
 from datamodel import *
-
+import pandas as pd
 
 """ constants """
 
@@ -56,12 +56,69 @@ SYMBOLS = list(LISTINGS.keys())
 
 
 
+""" read csvs into dataframe """
+
+_day_range = [-1, 0, 1]
+_round_num = 2
+
+def get_file_trades(day):
+    fname = f"../data/round{_round_num}/trades_round_{_round_num}_day_{day}_nn.csv"
+    print("fname", fname)
+    return pd.read_csv(fname, sep=";")
+
+def get_file_prices(day):
+    fname = f"../data/round{_round_num}/prices_round_{_round_num}_day_{day}.csv"
+    print("fname", fname)
+    return pd.read_csv(fname, sep=";")
+
+trades = []
+prices = []
+
+for day in _day_range:
+    # get data from files
+    trade_df = get_file_trades(day)
+    price_df = get_file_prices(day)
+    
+    trade_df["day"] = day
+    
+    trades += [trade_df]
+    prices += [price_df]
+
+# concat all data
+trade_df = pd.concat(trades)
+price_df = pd.concat(prices)
+
+# reset indexes
+trade_df = trade_df.reset_index(drop=True)
+price_df = price_df.reset_index(drop=True)
+
+# drop irrelevant columns
+trade_df = trade_df.drop(["currency", "buyer", "seller"], axis=1)
+price_df = price_df.drop(["profit_and_loss"], axis=1)
+
+# rename columns
+price_df = price_df.rename({"product": "symbol"}, axis=1)
+price_df = price_df.rename({"timestamp": "time"}, axis=1)
+trade_df = trade_df.rename({"timestamp": "time"}, axis=1)
+
+# calculate new time (for multiday)
+trade_df["time"] = trade_df["time"] + (trade_df["day"] - min(_day_range)) * MAX_TIME
+price_df["time"] = price_df["time"] + (price_df["day"] - min(_day_range)) * MAX_TIME
+
+# rename "bid" to "buy"
+# rename "ask" to "sell"
+price_df = price_df.rename({col: col.replace("bid", "buy") for col in price_df.columns if "bid" in col}, axis=1)
+price_df = price_df.rename({col: col.replace("ask", "sell") for col in price_df.columns if "ask" in col}, axis=1)
+
+
+
 """ player parameters """
 
 from .fair import Fair
 
 FAIR = Fair(
     products=PRODUCTS,
+    price_df=price_df
 )
 
 from .bots.taker_bot import TakerBot
@@ -75,7 +132,8 @@ PLAYERS = [
         player_id=100, 
         position_limits=market_position_limits, 
         is_main=False,
-        fair_obj=FAIR
+        fair_obj=FAIR,
+        price_df=price_df, 
     ),
     Trader(
         player_id=1717, 
@@ -86,7 +144,8 @@ PLAYERS = [
         player_id=500, 
         position_limits=market_position_limits, 
         is_main=False,
-        fair_obj=FAIR
+        fair_obj=FAIR,
+        trade_df=trade_df
     ),
 ]
 
