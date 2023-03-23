@@ -80,7 +80,7 @@ class MakerBot:
                 price=price,
                 quantity=size,
             ))
-            # print("placed buy order:", symbol, "price:", price, "size:", size)
+            # print("MAKER BOT places buy order:", symbol, "price:", price, "size:", size)
 
         if (action == "sell"):
             self.place_sell_order(Order(
@@ -88,7 +88,7 @@ class MakerBot:
                 price=price,
                 quantity=size,
             ))
-            # print("placed sell order:", symbol, "price:", price, "size:", size)
+            # print("MAKER BOT places sell order:", symbol, "price:", price, "size:", size)
 
 
 

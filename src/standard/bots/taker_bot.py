@@ -23,6 +23,7 @@ class TakerBot:
         self._is_main = is_main
         self._position_limits = position_limits
         self._fair_obj = fair_obj
+        self.trade_df = trade_df
 
     def turn_start(self, state):
         self.turn += 1
@@ -59,7 +60,7 @@ class TakerBot:
 
 
         my_orders = self.get_orders()
-        print("My orders", my_orders)
+        print("TAKER BOT ORDERS at time ", state.timestamp, ":", my_orders)
         return my_orders
 
     def run_internal(self, state):
@@ -70,30 +71,62 @@ class TakerBot:
 
 
     def take_trade(self, state: TradingState, symbol: Symbol):
+        time = state.timestamp
+        trades = self.trade_df[(self.trade_df["time"] == time)
+                    & (self.trade_df["symbol"] == symbol)]
         
-        is_buy = random.random() < 0.5
+        for _, trade in trades.iterrows():
+            trade_price = trade["price"]
+            trade_quantity = trade["quantity"]
 
-        if is_buy:
-            book = state.order_depths[symbol].sell_orders
-            is_reverse = False
-            place_order_func = self.place_buy_order
-        else:
-            book = state.order_depths[symbol].buy_orders
-            is_reverse = True
-            place_order_func = self.place_sell_order
+            sell_book = state.order_depths[symbol].sell_orders
+            buy_book = state.order_depths[symbol].buy_orders
+            # print("sell book", sell_book)
+            # print("buy book", buy_book)
+
+            if trade_price in sell_book:
+                book_quantity = sell_book[trade_price]
+                place_order_func = self.place_buy_order
+                place_order_func(Order(
+                    symbol=symbol,
+                    price=trade_price,
+                    quantity=min(trade_quantity, book_quantity),
+                ))
+                # print("TAKER BOT places buy order", "price", trade_price, "quantity", min(trade_quantity, book_quantity))
+            elif trade_price in buy_book:
+                book_quantity = buy_book[trade_price]
+                place_order_func = self.place_sell_order
+                place_order_func(Order(
+                    symbol=symbol,
+                    price=trade_price,
+                    quantity=min(trade_quantity, book_quantity),
+                ))
+                # print("TAKER BOT places sell order", "price", trade_price, "quantity", min(trade_quantity, book_quantity))
 
 
-        if len(book) > 0:
-            # find best price
-            sorts = sorted(list(book.items()), reverse=is_reverse)
-            best_order = sorts[0]
+        """old trade logic"""
+        # is_buy = random.random() < 0.5
 
-            # place order
-            place_order_func(Order(
-                symbol=symbol,
-                price=best_order[0],
-                quantity=best_order[1],
-            ))
+        # if is_buy:
+        #     book = state.order_depths[symbol].sell_orders
+        #     is_reverse = False
+        #     place_order_func = self.place_buy_order
+        # else:
+        #     book = state.order_depths[symbol].buy_orders
+        #     is_reverse = True
+        #     place_order_func = self.place_sell_order
+
+        # if len(book) > 0:
+        #     # find best price
+        #     sorts = sorted(list(book.items()), reverse=is_reverse)
+        #     best_order = sorts[0]
+
+        #     # place order
+        #     place_order_func(Order(
+        #         symbol=symbol,
+        #         price=best_order[0],
+        #         quantity=best_order[1],
+        #     ))
 
 
 
