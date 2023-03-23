@@ -289,37 +289,6 @@ class Trader:
         return orders
 
 
-    # def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
-    #     """ Called by game engine, returns dict of buy/sell orders
-    #     """
-
-    #     _print("_"*100)
-
-    #     state_json = json.loads(state.toJSON())
-
-    #     orders = {}
-
-    #     try:
-        
-    #         # turn setup
-    #         self.turn_start(state)
-
-    #         # main body
-    #         self.run_internal(state)
-
-    #         # cleanup / info reporting section
-    #         orders = self.turn_end(state)
-            
-
-    #     # failsafe - to be commented during debug
-    #     # except Exception:
-    #     #     traceback.print_exc()
-        
-    #     finally:
-    #         logger.flush(state_json, orders)
-    #         return orders
-    
-
     def turn_end(self, state):
         """ Runs at end of turn
         - records the orders we submit
@@ -818,6 +787,9 @@ class Trader:
 
             # fair value
             "fair_values": fair_values,
+
+            # history length
+            "history_len": len(self.DM.history["BANANAS"]),
         }
 
 

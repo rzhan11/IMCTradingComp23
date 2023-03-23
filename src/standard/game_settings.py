@@ -9,6 +9,8 @@ TIME_STEP = 100
 trader_position_limits : Dict[Product, int] = {
     "BANANAS": 20,
     "PEARLS": 20,
+    "COCONUTS": 600,
+    "PINA_COLADAS": 300,
     "SEASHELLS": float("inf")
 }
 
@@ -23,6 +25,16 @@ LISTINGS : Dict[Symbol, Listing] = {
     "PEARLS": Listing(
         symbol = "PEARLS",
         product = "PEARLS",
+        denomination = 1,
+    ),
+    "COCONUTS": Listing(
+        symbol = "COCONUTS",
+        product = "COCONUTS",
+        denomination = 1,
+    ),
+    "PINA_COLADAS": Listing(
+        symbol = "PINA_COLADAS",
+        product = "PINA_COLADAS",
         denomination = 1,
     ),
 }
