@@ -37,9 +37,17 @@ PARAMS = {
     "is_penny": {
         "PEARLS": True,
         "BANANAS": True,
+        "COCONUTS": True,
+        "PINA_COLADAS": True,
+    },
+
+    "make_flag": {
+        "PEARLS": True,
+        "BANANAS": True,
         "COCONUTS": False,
         "PINA_COLADAS": False,
     },
+
     "match_size": False,
 
     "min_take_edge": 0.25,
@@ -215,6 +223,7 @@ class Trader:
         self.is_penny = PARAMS["is_penny"]
         self.match_size = PARAMS["match_size"]
         self.min_take_edge  = PARAMS["min_take_edge"]
+        self.make_flag = PARAMS["make_flag"]
 
 
     def turn_start(self, state: TradingState):
@@ -370,19 +379,22 @@ class Trader:
             fair_value = self.get_fair_value(sym)   
             mid_ema = self.get_ema_mid(sym)  
 
-            self.take_logic(
-                state=state,
-                sym=sym,
-                fair_value=fair_value,
-                ema=mid_ema,
-            )
+            if sym in ["PEARLS", "BANANAS"]:
+                self.take_logic(
+                    state=state,
+                    sym=sym,
+                    fair_value=fair_value,
+                    ema=mid_ema,
+                )
 
-            self.make_logic(
-                state=state,
-                sym=sym,
-                fair_value=fair_value,
-            )
+            if self.make_flag[sym]:
+                self.make_logic(
+                    state=state,
+                    sym=sym,
+                    fair_value=fair_value,
+                )
 
+        self.pairs_trading_logic(state=state, sym_hi="PINA_COLADAS", sym_lo="COCONUTS", fair_RV = 1.8750388)
 
     def get_ema_mid(self, sym: Symbol) -> float:
         
@@ -401,6 +413,7 @@ class Trader:
 
         # get large_quote_mid
         large_quote_mid, use_large_quote_mid = self.get_large_quote_mid(sym)
+        
 
         # if conditions were good, use large_quote_mid
         if use_large_quote_mid:
@@ -409,7 +422,73 @@ class Trader:
             return mid_ema
         
 
+    def pairs_trading_logic(self, 
+            state: TradingState,
+            sym_hi: Symbol, 
+            sym_lo: Symbol,
+            fair_RV: float,
+            ):
+        
+        #assuming (price of sym_hi)/(price of sym_lo) == fair_RV
+        
+        OM = self.OM
 
+        buys_hi, sells_hi = self.all_buys[sym_hi], self.all_sells[sym_hi]
+        buys_lo, sells_lo = self.all_buys[sym_lo], self.all_sells[sym_lo]
+
+        #check if current RV is too large
+        #if so, sell symbol hi, buy symbol lo
+        limit_hi = OM.get_rem_sell_size(state, sym_hi)
+        hi_price, hi_size = buys_hi[0]
+        max_quantity_hi = min(hi_size, limit_hi)
+
+        limit_lo = OM.get_rem_buy_size(state, sym_lo)
+        lo_price, lo_size = sells_lo[0]
+        max_quantity_lo = min(lo_size, limit_lo)
+        if (hi_price / lo_price) > fair_RV:
+            num_pairs = 0
+            while ((num_pairs+1) <= max_quantity_hi and (num_pairs+1) * fair_RV <= max_quantity_lo):
+                num_pairs+=1
+            
+            num_sell_hi = num_pairs
+            num_buy_lo = round((num_pairs) * fair_RV)
+            OM.place_sell_order(Order(
+                symbol=sym_hi,
+                price=hi_price,
+                quantity=num_sell_hi,
+            ))
+            OM.place_buy_order(Order(
+                symbol=sym_lo,
+                price=lo_price,
+                quantity=num_buy_lo,
+            ))
+
+        #check if current RV is too small
+        #if so, buy symbol hi, sell symbol lo
+        limit_hi = OM.get_rem_buy_size(state, sym_hi)
+        hi_price, hi_size = sells_hi[0]
+        max_quantity_hi = min(hi_size, limit_hi)
+
+        limit_lo = OM.get_rem_sell_size(state, sym_lo)
+        lo_price, lo_size = buys_lo[0]
+        max_quantity_lo = min(lo_size, limit_lo)
+        if (hi_price / lo_price) < fair_RV:
+            num_pairs = 0
+            while ((num_pairs+1) <= max_quantity_hi and (num_pairs+1) * fair_RV <= max_quantity_lo):
+                num_pairs+=1
+            
+            num_buy_hi = num_pairs
+            num_sell_lo = round((num_pairs) * fair_RV)
+            OM.place_buy_order(Order(
+                symbol=sym_hi,
+                price=hi_price,
+                quantity=num_buy_hi,
+            ))
+            OM.place_sell_order(Order(
+                symbol=sym_lo,
+                price=lo_price,
+                quantity=num_sell_lo,
+            ))
 
     def take_logic(self, 
             state: TradingState,
@@ -423,37 +502,6 @@ class Trader:
         prod = state.listings[sym].product
 
         OPP_COST = REF_OPP_COSTS[prod]
-           
-
-        #-------------OLD TAKE LOGIC------------
-        # # min edge params
-        # min_buy_edge = self.min_take_edge
-        # min_sell_edge = self.min_take_edge
-
-        # # take orders on buy_side (we sell to existing buy orders)
-        # for price, quantity in buys:
-        #     if price > fair_value + min_buy_edge:
-        #     # if price > fair_value + min_buy_edge or price > ema:
-        #         limit = OM.get_rem_sell_size(state, sym)
-        #         if limit > 0:
-        #             OM.place_sell_order(Order(
-        #                 symbol=sym,
-        #                 price=price,
-        #                 quantity=min(limit, quantity)
-        #             )) 
-
-        # # take orders on sell side (we buy from existing sell orders)
-        # for price, quantity in sells:
-        #     if price < fair_value - min_sell_edge:
-        #     # if price < fair_value - min_sell_edge or price < ema:
-        #         limit = OM.get_rem_buy_size(state, sym)
-        #         if limit > 0:
-        #             OM.place_buy_order(Order(
-        #                 symbol=sym,
-        #                 price=price,
-        #                 quantity=min(limit, quantity)
-        #             ))
-        #-----------------------------------
 
 
         # take orders on buy_side (we sell to existing buy orders)
