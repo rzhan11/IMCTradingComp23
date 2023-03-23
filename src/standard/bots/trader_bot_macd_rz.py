@@ -583,7 +583,7 @@ class Trader:
         
         # get mid price, margin, and macd
         mid_price = self.DM.history[sym][-1]['mid']
-        margin = mid_price * 0.005
+        margin = mid_price * 0.005 / 10
         macd = self.DM.history[sym][-1]['macd']
 
         print(mid_price, margin, macd, self.macd_pos)
@@ -845,6 +845,9 @@ class Trader:
 
             # fair value
             "fair_values": fair_values,
+
+            # history length
+            "history_len": len(self.DM.history["BANANAS"]),
         }
 
 
@@ -967,7 +970,6 @@ class DataManager:
         # macd calculations
         fast_ema = new_emas[21]
         slow_ema = new_emas[100]
-        print("fast/slow", fast_ema, slow_ema)
         macd = fast_ema - slow_ema
 
 
