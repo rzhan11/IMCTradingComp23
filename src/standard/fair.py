@@ -46,10 +46,10 @@ class Fair:
 
     # update fair values based on the mid price
     def update_mid_price(self, timestamp, prod):
-        state = self.price_df[(self.price_df["time"] == timestamp)
+        time_state = self.price_df[(self.price_df["time"] == timestamp)
                 & (self.price_df["symbol"] == prod)]
-        mid_price = state["mid_price"]
-        self.value[prod] = mid_price.values[-1]
+        mid_price = time_state["mid_price"].values[-1]
+        self.value[prod] = mid_price
 
     def update_lognormal(self, prod):
         value = self.value[prod]

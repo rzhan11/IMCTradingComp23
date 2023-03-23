@@ -26,6 +26,7 @@ class MakerBot:
         self._position_limits = position_limits
         # make this the median price
         self._fair_obj = fair_obj
+        self.price_df = price_df
 
     def turn_start(self, state):
         self.turn += 1
@@ -40,43 +41,54 @@ class MakerBot:
         """
         # Initialize the method output dict as an empty dict
         self.turn_start(state)
-
         self.run_internal(state)
 
 
-
         my_orders = self.get_orders()
-        print("My orders", my_orders)
+        print("MAKER BOT ORDERS at time ", state.timestamp, ":", my_orders)
         return my_orders
 
     def run_internal(self, state):
 
+        time = state.timestamp
         fairs = self._fair_obj.value
 
-        for prod, value in fairs.items():
+        for prod, _ in fairs.items():
             if prod == "SEASHELLS":
                 continue
-            
-            self.make_market(prod, int(value), 10, 2)
-            self.make_market(prod, int(value), 100, 20)
+
+            for num in range(1, 4):
+                time_state = self.price_df[(self.price_df["time"] == time)
+                    & (self.price_df["symbol"] == prod)]
+                
+                buy_price = time_state[f"buy_price_{num}"].values[-1]
+                buy_size = time_state[f"buy_volume_{num}"].values[-1]
+                if (not np.isnan(buy_price)) | (not np.isnan(buy_size)):
+                    self.make_market(prod, "buy", int(buy_price), int(buy_size))
+
+                sell_price = time_state[f"sell_price_{num}"].values[-1]
+                sell_size = time_state[f"sell_volume_{num}"].values[-1]
+                if (not np.isnan(sell_price)) | (not np.isnan(sell_size)):
+                    self.make_market(prod, "sell", int(sell_price), int(sell_size))
 
 
 
+    def make_market(self, symbol : Symbol, action : str, price : int, size : int):
+        if (action == "buy"):
+            self.place_buy_order(Order(
+                symbol=symbol,
+                price=price,
+                quantity=size,
+            ))
+            # print("placed buy order:", symbol, "price:", price, "size:", size)
 
-    def make_market(self, symbol : Symbol, fair : int, spread : int, size : int):
-        
-        self.place_buy_order(Order(
-            symbol=symbol,
-            price=fair - spread,
-            quantity=size,
-        ))
-
-        self.place_sell_order(Order(
-            symbol=symbol,
-            price=fair + spread,
-            quantity=size,
-        ))
-
+        if (action == "sell"):
+            self.place_sell_order(Order(
+                symbol=symbol,
+                price=price,
+                quantity=size,
+            ))
+            # print("placed sell order:", symbol, "price:", price, "size:", size)
 
 
 
