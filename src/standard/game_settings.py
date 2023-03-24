@@ -58,7 +58,8 @@ SYMBOLS = list(LISTINGS.keys())
 
 """ read csvs into dataframe """
 
-_day_range = [-1, 0, 1]
+_day_range = [1]
+# _day_range = [-1, 0, 1]
 _round_num = 2
 
 def get_file_trades(day):
