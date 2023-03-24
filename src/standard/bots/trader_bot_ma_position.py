@@ -474,7 +474,7 @@ class Trader:
         def get_target_contract_pos_sigmoid(pred_error):
 
             # sigmoid function is directly fit onto the error
-            fit_fn = lambda x : sigmoid(0.05435088 * 2.5, x)
+            fit_fn = lambda x : sigmoid(0.05435088 * 2, x)
 
             ratio = (fit_fn(pred_error) - 0.5) / 0.5
 
