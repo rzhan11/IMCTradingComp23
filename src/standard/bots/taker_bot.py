@@ -30,6 +30,8 @@ class TakerBot:
         self._buy_orders = {sym: [] for sym in state.listings.keys()}
         self._sell_orders = {sym: [] for sym in state.listings.keys()}
 
+        self.symbols = set([listing.symbol for sym, listing in state.listings.items()])
+
         self.negate_sell_book_quantities(state)
 
     def negate_sell_book_quantities(self, state: TradingState):
@@ -65,72 +67,50 @@ class TakerBot:
 
     def run_internal(self, state):
 
-        self.take_trade(state, "PEARLS")
-        self.take_trade(state, "BANANAS")
+        time = state.timestamp
+
+        # filter df to only look at current time
+        cur_df = self.trade_df
+        cur_df = cur_df[cur_df["time"] == time]
+
+
+        for sym in self.symbols:
+            self.take_trade(state, sym, cur_df)
         
 
 
-    def take_trade(self, state: TradingState, symbol: Symbol):
-        time = state.timestamp
-        trades = self.trade_df[(self.trade_df["time"] == time)
-                    & (self.trade_df["symbol"] == symbol)]
+    def take_trade(self, state: TradingState, symbol: Symbol, cur_df):
+
+        # filters cur_df to only use current symbol
+        trades = cur_df[cur_df["symbol"] == symbol]
         
         for _, trade in trades.iterrows():
             trade_price = trade["price"]
             trade_quantity = trade["quantity"]
 
-            sell_book = state.order_depths[symbol].sell_orders
+            # look at current best buy, potentially sell to them
             buy_book = state.order_depths[symbol].buy_orders
-            # print("sell book", sell_book)
-            # print("buy book", buy_book)
 
-            if trade_price in sell_book:
-                book_quantity = sell_book[trade_price]
-                place_order_func = self.place_buy_order
-                place_order_func(Order(
-                    symbol=symbol,
-                    price=trade_price,
-                    quantity=min(trade_quantity, book_quantity),
-                ))
-                # print("TAKER BOT places buy order", "price", trade_price, "quantity", min(trade_quantity, book_quantity))
-            elif trade_price in buy_book:
-                book_quantity = buy_book[trade_price]
-                place_order_func = self.place_sell_order
-                place_order_func(Order(
-                    symbol=symbol,
-                    price=trade_price,
-                    quantity=min(trade_quantity, book_quantity),
-                ))
-                # print("TAKER BOT places sell order", "price", trade_price, "quantity", min(trade_quantity, book_quantity))
+            if len(buy_book) > 0:
+                buy_price, buy_quantity = max(buy_book.items())
+                if trade_price < buy_price:
+                    # sell to their buy order
+                    self.place_sell_order(Order(
+                        symbol=symbol,
+                        price=trade_price,
+                        quantity=trade_quantity,
+                    ))
 
-
-        """old trade logic"""
-        # is_buy = random.random() < 0.5
-
-        # if is_buy:
-        #     book = state.order_depths[symbol].sell_orders
-        #     is_reverse = False
-        #     place_order_func = self.place_buy_order
-        # else:
-        #     book = state.order_depths[symbol].buy_orders
-        #     is_reverse = True
-        #     place_order_func = self.place_sell_order
-
-        # if len(book) > 0:
-        #     # find best price
-        #     sorts = sorted(list(book.items()), reverse=is_reverse)
-        #     best_order = sorts[0]
-
-        #     # place order
-        #     place_order_func(Order(
-        #         symbol=symbol,
-        #         price=best_order[0],
-        #         quantity=best_order[1],
-        #     ))
-
-
-
-
+            sell_book = state.order_depths[symbol].sell_orders
+            if len(sell_book) > 0:
+                sell_price, sell_quantity = max(sell_book.items())
+                if trade_price > sell_price:
+                    # buy from their sell order
+                    self.place_buy_order(Order(
+                        symbol=symbol,
+                        price=trade_price,
+                        quantity=trade_quantity,
+                    ))
 
 
 

@@ -40,6 +40,8 @@ def main(package: str):
         fairs=GS.FAIR,
     )
 
+    player_times = {player._player_id : 0 for player in GS.PLAYERS}
+
     # main game loop, one turn for every loop
     for cur_turn, cur_time in enumerate(range(0, GS.MAX_TIME, GS.TIME_STEP)):
 
@@ -54,8 +56,10 @@ def main(package: str):
 
             pid = player._player_id
             
-            # remove expired orders
-            state.remove_player_orders(pid=pid)
+            # # remove expired orders
+            # state.remove_player_orders(pid=pid)
+
+            # make copy of state for player's use
             state_player_copy = state.get_player_copy(pid=pid)
 
             eprint("Books:")
@@ -69,10 +73,13 @@ def main(package: str):
 
             # run trader actions
 
+            player_time = time.time()
+
             orders = player.run(state_player_copy)
             orders = {k: [el.copy() for el in v] for k, v in orders.items()}
 
             eprint(f"Player {pid} orders:", orders)
+            player_times[pid] += time.time() - player_time
 
             # apply trades to trader actions
             state.apply_orders(pid=pid, orders=orders)
@@ -83,6 +90,13 @@ def main(package: str):
 
             state.validate()
 
+
+        # clear all orders
+            
+        for player in GS.PLAYERS:
+            pid = player._player_id
+            # remove expired orders
+            state.remove_player_orders(pid=pid)
 
 
     # caclculate pnls
@@ -98,7 +112,7 @@ def main(package: str):
     eprint("Engine CPU time", round(time.process_time() - main_process_start_time, 1))
     eprint("Engine Wall time", round(time.time() - main_wall_start_time, 1))
     
-
+    eprint("Player times:", json.dumps(player_times, indent=2))
 
 
 

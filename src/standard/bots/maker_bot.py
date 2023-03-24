@@ -28,10 +28,35 @@ class MakerBot:
         self._fair_obj = fair_obj
         self.price_df = price_df
 
+
+        # preprocess price_df
+        # maps time to list of rows
+        # self.grouped_df = price_df.groupby("time")
+
+
+
     def turn_start(self, state):
         self.turn += 1
         self._buy_orders = {sym: [] for sym in state.listings.keys()}
         self._sell_orders = {sym: [] for sym in state.listings.keys()}
+
+        self.symbols = set([listing.symbol for sym, listing in state.listings.items()])
+
+        self.negate_sell_book_quantities(state)
+
+    def negate_sell_book_quantities(self, state: TradingState):
+        """
+        The IMC engine's sell orders have negative quantity.
+        We preprocess them to make them all positive
+        """
+
+        for sym, book in state.order_depths.items():
+            # negate sell_quantity
+            new_sell_orders = {}
+            for sell_price, sell_quantity in book.sell_orders.items():
+                assert sell_quantity < 0
+                new_sell_orders[sell_price] = -1 * sell_quantity
+            book.sell_orders = new_sell_orders
 
 
     def run(self, state: TradingState) -> Dict[Symbol, List[Order]]:
@@ -51,29 +76,45 @@ class MakerBot:
     def run_internal(self, state):
 
         time = state.timestamp
-        fairs = self._fair_obj.value
 
-        for prod, _ in fairs.items():
-            if prod == "SEASHELLS":
-                continue
+        # this df only contains rows for our time
+        cur_df = self.price_df
+        cur_df = cur_df[cur_df["time"] == time]
+        # cur_df = self.grouped_df.get_group(time)
+
+        for sym in self.symbols:
+
+            # grab first row
+            time_state = cur_df[cur_df["symbol"] == sym].iloc[0]
 
             for num in range(1, 4):
-                time_state = self.price_df[(self.price_df["time"] == time)
-                    & (self.price_df["symbol"] == prod)]
                 
-                buy_price = time_state[f"buy_price_{num}"].values[-1]
-                buy_size = time_state[f"buy_volume_{num}"].values[-1]
-                if (not np.isnan(buy_price)) | (not np.isnan(buy_size)):
-                    self.make_market(prod, "buy", int(buy_price), int(buy_size))
+                # place buys
+                buy_price = time_state[f"buy_price_{num}"]
+                buy_size = time_state[f"buy_volume_{num}"]
+                if (not np.isnan(buy_price)) and (not np.isnan(buy_size)):
+                    self.place_buy_order(Order(
+                        symbol=sym,
+                        price=int(buy_price),
+                        quantity=int(buy_size),
+                    ))
 
-                sell_price = time_state[f"sell_price_{num}"].values[-1]
-                sell_size = time_state[f"sell_volume_{num}"].values[-1]
-                if (not np.isnan(sell_price)) | (not np.isnan(sell_size)):
-                    self.make_market(prod, "sell", int(sell_price), int(sell_size))
+                # place sells
+                sell_price = time_state[f"sell_price_{num}"]
+                sell_size = time_state[f"sell_volume_{num}"]
+                if (not np.isnan(sell_price)) and (not np.isnan(sell_size)):
+                    self.place_sell_order(Order(
+                        symbol=sym,
+                        price=int(sell_price),
+                        quantity=int(sell_size),
+                    ))
 
 
 
     def make_market(self, symbol : Symbol, action : str, price : int, size : int):
+        """ not used currently """
+
+
         if (action == "buy"):
             self.place_buy_order(Order(
                 symbol=symbol,
