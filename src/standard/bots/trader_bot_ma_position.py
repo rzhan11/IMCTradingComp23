@@ -18,10 +18,10 @@ PRINT_OURS = True
 MAX_POS = {
     "PEARLS": 20,
     "BANANAS": 20,
-    # "COCONUTS": 600,
-    # "PINA_COLADAS": 300,
-    "COCONUTS": 300,
-    "PINA_COLADAS": 150,
+    "COCONUTS": 600,
+    "PINA_COLADAS": 300,
+    # "COCONUTS": 300,
+    # "PINA_COLADAS": 150,
 }
 
 PARAMS = {
@@ -47,6 +47,8 @@ PARAMS = {
         "COCONUTS": False,
         "PINA_COLADAS": False,
     },
+
+    "pairs_model_weights": [1.55131931e+00, 2.59237689e+03],
 
     "match_size": False,
 
@@ -225,6 +227,10 @@ class Trader:
         self.min_take_edge  = PARAMS["min_take_edge"]
         self.make_flag = PARAMS["make_flag"]
 
+        # pairs trading logic
+        pairs_model_weights = PARAMS["pairs_model_weights"]
+        self.pairs_model = np.poly1d(pairs_model_weights)
+
 
     def turn_start(self, state: TradingState):
         # measure time
@@ -257,6 +263,7 @@ class Trader:
         self.OM : OrderManager = OrderManager(
             symbols=self.symbols,
             position_limits=self._position_limits,
+            listings=state.listings,
         )
 
         # store/process game state into history
@@ -318,9 +325,9 @@ class Trader:
         OM = self.OM
 
         # close all positions if `is_close` flag is on, and we are at end of game
-        if self.is_close and state.timestamp >= self.max_timestamp - self.time_step * self.close_turns:
-            self.close_positions(state)
-            return
+        # if self.is_close and state.timestamp >= self.max_timestamp - self.time_step * self.close_turns:
+        #     self.close_positions(state)
+        #     return
 
         # setup all_buys / all_sells
         self.all_buys = {}
@@ -363,7 +370,11 @@ class Trader:
                     fair_value=fair_value,
                 )
 
-        self.pairs_trading_logic(state=state, sym_hi="PINA_COLADAS", sym_lo="COCONUTS", fair_RV = 1.8750388)
+        self.pairs_trading_logic(
+            state=state, 
+            sym_a="PINA_COLADAS", 
+            sym_b="COCONUTS", 
+        )
 
     def get_ema_mid(self, sym: Symbol) -> float:
         
@@ -389,75 +400,276 @@ class Trader:
             return large_quote_mid
         else: # else, use ema
             return mid_ema
-        
+    
+
+    def get_best_buy_order(self, sym: Symbol):
+        buys = self.all_buys[sym]
+        if len(buys) > 0:
+            return buys[0]
+        else:
+            return None, None
+
+    def get_best_sell_order(self, sym: Symbol):
+        sells = self.all_sells[sym]
+        if len(sells) > 0:
+            return sells[0]
+        else:
+            return None, None
+
+    def place_take_best_buy(self, state: TradingState, sym: Symbol, max_quantity: int):
+
+        limit = self.OM.get_rem_buy_size(state, sym)
+        price, quantity = self.get_best_buy_order(sym)
+
+        if price is not None:
+            self.OM.place_buy_order(
+                symbol=sym,
+                price=price,
+                quantity=min([limit, quantity, max_quantity]),
+                is_take=True,
+            )
+
+    def place_take_best_sell(self, state: TradingState, sym: Symbol, max_quantity: int):
+
+        limit = self.OM.get_rem_sell_size(state, sym)
+        price, quantity = self.get_best_sell_order(sym)
+
+        if price is not None:
+            self.OM.place_sell_order(
+                symbol=sym,
+                price=price,
+                quantity=min([limit, quantity, max_quantity]),
+                is_take=True,
+            )
+
 
     def pairs_trading_logic(self, 
             state: TradingState,
-            sym_hi: Symbol, 
-            sym_lo: Symbol,
-            fair_RV: float,
+            sym_a: Symbol, 
+            sym_b: Symbol,
             ):
+        
+        # use this to predict prices
+        model = self.pairs_model
+        model_m, _ = self.pairs_model.coef
         
         #assuming (price of sym_hi)/(price of sym_lo) == fair_RV
         
         OM = self.OM
 
-        buys_hi, sells_hi = self.all_buys[sym_hi], self.all_sells[sym_hi]
-        buys_lo, sells_lo = self.all_buys[sym_lo], self.all_sells[sym_lo]
+        prod_a = state.listings[sym_a].product
+        prod_b = state.listings[sym_b].product
 
-        #check if current RV is too large
-        #if so, sell symbol hi, buy symbol lo
-        limit_hi = OM.get_rem_sell_size(state, sym_hi)
-        hi_price, hi_size = buys_hi[0]
-        max_quantity_hi = min(hi_size, limit_hi)
+        # 1 
+        max_contract_pos = int(min(
+            self._position_limits[prod_a] // 1,
+            self._position_limits[prod_b] // model_m,
+        ))
 
-        limit_lo = OM.get_rem_buy_size(state, sym_lo)
-        lo_price, lo_size = sells_lo[0]
-        max_quantity_lo = min(lo_size, limit_lo)
-        if (hi_price / lo_price) > fair_RV:
-            num_pairs = 0
-            while ((num_pairs+1) <= max_quantity_hi and (num_pairs+1) * fair_RV <= max_quantity_lo):
-                num_pairs+=1
+        def get_target_contract_pos(pred_error):
+            target_pos = -1 * (pred_error / 50) * max_contract_pos
+            target_pos = min(target_pos, max_contract_pos)
+            target_pos = max(target_pos, -1 * max_contract_pos)
+            return target_pos
+        
+        def get_cur_contract_pos():
+            """ Returns 'cur_contract_pos', 'diff_a', 'diff_b'
+            """
+
+            cur_pos_A = OM.get_expected_pos(state, prod_a)
+            cur_pos_B = OM.get_expected_pos(state, prod_b)
+
+            # if they don't have opposite signs, we aren't pairs trading
+            if np.sign(cur_pos_A) * np.sign(cur_pos_B) >= 0:
+                return 0, -1 * cur_pos_A, -1 * cur_pos_B
             
-            num_sell_hi = num_pairs
-            num_buy_lo = round((num_pairs) * fair_RV)
-            OM.place_sell_order(Order(
-                symbol=sym_hi,
-                price=hi_price,
-                quantity=num_sell_hi,
-            ))
-            OM.place_buy_order(Order(
-                symbol=sym_lo,
-                price=lo_price,
-                quantity=num_buy_lo,
-            ))
+            else:
+                contract_size_A = cur_pos_A
+                contract_size_B = -1 * cur_pos_B / model_m
 
-        #check if current RV is too small
-        #if so, buy symbol hi, sell symbol lo
-        limit_hi = OM.get_rem_buy_size(state, sym_hi)
-        hi_price, hi_size = sells_hi[0]
-        max_quantity_hi = min(hi_size, limit_hi)
+                # find our actual contract size
+                contract_size = np.sign(contract_size_A) * min(abs(contract_size_A), abs(contract_size_B))
 
-        limit_lo = OM.get_rem_sell_size(state, sym_lo)
-        lo_price, lo_size = buys_lo[0]
-        max_quantity_lo = min(lo_size, limit_lo)
-        if (hi_price / lo_price) < fair_RV:
-            num_pairs = 0
-            while ((num_pairs+1) <= max_quantity_hi and (num_pairs+1) * fair_RV <= max_quantity_lo):
-                num_pairs+=1
-            
-            num_buy_hi = num_pairs
-            num_sell_lo = round((num_pairs) * fair_RV)
-            OM.place_buy_order(Order(
-                symbol=sym_hi,
-                price=hi_price,
-                quantity=num_buy_hi,
-            ))
-            OM.place_sell_order(Order(
-                symbol=sym_lo,
-                price=lo_price,
-                quantity=num_sell_lo,
-            ))
+                # find the diffs between our contract size and A/B
+                diff_A = round(contract_size - cur_pos_A)
+                diff_B = round(contract_size * model_m - cur_pos_B)
+
+                return int(contract_size), int(diff_A), int(diff_B)
+
+
+
+
+        # place in its own method, to avoid accidental variable reuse
+        def sell_a_buy_b():
+            """  
+            Check if A is OVER-priced (SELL A, BUY B)
+            Sell contracts
+            """
+
+            # get book
+            buys_a = self.all_buys[sym_a]
+            sells_b = self.all_sells[sym_b]
+
+            # check if trade is profitable
+            if len(buys_a) > 0 and len(sells_b) > 0:
+                # what orders does book display
+                price_a, size_a = buys_a[0]
+                price_b, size_b = sells_b[0]
+
+                # what price should A be
+                price_a_pred = model(price_b)
+
+                # if we can SELL A at a price better than it's supposed to be at
+                pred_error = price_a - price_a_pred
+
+                # get cur/target contract pos
+                target_contract_pos = get_target_contract_pos(pred_error)
+                cur_contract_pos, diff_A, diff_B = get_cur_contract_pos()
+
+                contract_diff = target_contract_pos - cur_contract_pos
+                contract_diff_size = abs(contract_diff)
+
+                # if we want to sell
+                if contract_diff < 0:
+                    # see trade limits
+                    limit_a = OM.get_rem_sell_size(state, sym_a)
+                    limit_b = OM.get_rem_buy_size(state, sym_b)
+
+                    # find amt of contract that we can trade
+                    trade_size_a = min(limit_a, size_a)
+                    trade_size_b = min(limit_b, size_b)
+
+                    # size of "pairs trades" that we do
+                    contract_size = min([contract_diff_size, trade_size_a, trade_size_b // model_m])
+
+                    # we trade 'contract_size' of A and 'contract_size * model_m' of B 
+                    trade_size_a = int(round(contract_size))
+                    trade_size_b = int(round(contract_size * model_m))
+
+                    # sell A
+                    OM.place_sell_order(
+                        symbol=sym_a,
+                        price=price_a,
+                        quantity=trade_size_a,
+                        is_take=True,
+                    )
+                    # buy B
+                    OM.place_buy_order(
+                        symbol=sym_b,
+                        price=price_b,
+                        quantity=trade_size_b,
+                        is_take=True,
+                    )
+
+                    
+        def buy_a_sell_b():
+            # check if A is UNDERpriced (BUY A, SELL B)
+
+            # get book
+            sells_a = self.all_sells[sym_a]
+            buys_b = self.all_buys[sym_b]
+
+            # check if trade is profitable
+            if len(sells_a) > 0 and len(buys_b) > 0:
+                # what orders does book display
+                price_a, size_a = sells_a[0]
+                price_b, size_b = buys_b[0]
+
+                # what price should A be
+                price_a_pred = model(price_b)
+
+                # if we can BUY A at a price better than it's supposed to be at
+                pred_error = price_a - price_a_pred
+
+                # get cur/target contract pos
+                target_contract_pos = get_target_contract_pos(pred_error)
+                cur_contract_pos, diff_A, diff_B = get_cur_contract_pos()
+
+                contract_diff = target_contract_pos - cur_contract_pos
+                contract_diff_size = abs(contract_diff)
+
+                # if we want to buy
+                if contract_diff > 0:
+                    # see trade limits
+                    limit_a = OM.get_rem_buy_size(state, sym_a)
+                    limit_b = OM.get_rem_sell_size(state, sym_b)
+
+                    # find amt of contract that we can trade
+                    trade_size_a = min(limit_a, size_a)
+                    trade_size_b = min(limit_b, size_b)
+
+                    # size of "pairs trades" that we do
+                    contract_size = min([contract_diff_size, trade_size_a, trade_size_b // model_m])
+
+                    # we trade 'contract_size' of A and 'contract_size * model_m' of B 
+                    trade_size_a = int(round(contract_size))
+                    trade_size_b = int(round(contract_size * model_m))
+                    
+                    # sell A
+                    OM.place_buy_order(
+                        symbol=sym_a,
+                        price=price_a,
+                        quantity=trade_size_a,
+                        is_take=True,
+                    )
+                    # buy B
+                    OM.place_sell_order(
+                        symbol=sym_b,
+                        price=price_b,
+                        quantity=trade_size_b,
+                        is_take=True,
+                    )
+
+
+        def hedge():
+            ## hedge
+            # if we have Q shares of stock A
+            # we should have -Q * model_m shares of stock B to be hedged
+
+            hedge_margin = 5
+
+            # diff_A is how much A we need to trade to be hedged, same for diff_B
+            cur_contract_pos, diff_A, diff_B = get_cur_contract_pos()
+            trade_size_A, trade_size_B = abs(diff_A), abs(diff_B)
+
+            # hedge A
+            if abs(diff_A) > hedge_margin:
+                if diff_A > 0: # we are too long, need to sell
+                    self.place_take_best_sell(
+                        state=state,
+                        sym=sym_a,
+                        max_quantity=trade_size_A,
+                    )
+                else: # we are too short, need to buy
+                    self.place_take_best_buy(
+                        state=state,
+                        sym=sym_a,
+                        max_quantity=trade_size_A,
+                    )
+
+            # hedge B
+            if abs(diff_B) > hedge_margin:
+                if diff_B > 0: # we are too long, need to sell
+                    self.place_take_best_sell(
+                        state=state,
+                        sym=sym_b,
+                        max_quantity=trade_size_B,
+                    )
+                else: # we are too short, need to buy
+                    self.place_take_best_buy(
+                        state=state,
+                        sym=sym_b,
+                        max_quantity=trade_size_B,
+                    )
+
+
+        sell_a_buy_b()
+        buy_a_sell_b()
+        hedge()
+        
+
+
+        
 
     def take_logic(self, 
             state: TradingState,
@@ -495,14 +707,11 @@ class Trader:
             if len(scores) > 0:
                 adj_rtn, take_size = max(scores)
                 if adj_rtn >= 0 and take_size > 0:
-                    OM.place_sell_order(Order(
+                    OM.place_sell_order(
                         symbol=sym,
                         price=price,
                         quantity=take_size,
-                    ))
-                    OM.update_expected_change(
-                        prod=prod,
-                        change=-1 * take_size,
+                        is_take=True,
                     )
 
                 # delete it
@@ -535,14 +744,11 @@ class Trader:
             if len(scores) > 0:
                 adj_rtn, take_size = max(scores)
                 if adj_rtn >= 0 and take_size > 0:
-                    OM.place_buy_order(Order(
+                    OM.place_buy_order(
                         symbol=sym,
                         price=price,
                         quantity=take_size,
-                    ))
-                    OM.update_expected_change(
-                        prod=prod,
-                        change=+1 * take_size,
+                        is_take=True,
                     )
 
                 # delete it
@@ -601,11 +807,12 @@ class Trader:
             if len(scores) > 0:
                 adj_rtn, buy_size = max(scores)
                 if adj_rtn >= 0 and buy_size > 0:
-                    OM.place_buy_order(Order(
+                    OM.place_buy_order(
                         symbol=sym,
                         price=price,
                         quantity=buy_size,
-                    ))
+                        is_take=False,
+                    )
             
 
         for price, quantity in sells:
@@ -633,11 +840,12 @@ class Trader:
             if len(scores) > 0:
                 adj_rtn, sell_size = max(scores)
                 if adj_rtn >= 0 and sell_size > 0:
-                    OM.place_sell_order(Order(
+                    OM.place_sell_order(
                         symbol=sym,
                         price=price,
                         quantity=sell_size,
-                    ))
+                        is_take=False,
+                    )
         
 
 
@@ -657,11 +865,11 @@ class Trader:
         #         else:
         #             order_quantity = limit
 
-        #         OM.place_buy_order(Order(
+        #         OM.place_buy_order(
         #             symbol=sym,
         #             price=price,
         #             quantity=order_quantity,
-        #         ))
+        #         )
 
         # # match orders on sell-side
         # for price, quantity in sells:
@@ -679,11 +887,11 @@ class Trader:
         #         else:
         #             order_quantity = limit
 
-        #         OM.place_sell_order(Order(
+        #         OM.place_sell_order(
         #             symbol=sym,
         #             price=price,
         #             quantity=order_quantity,
-        #         ))
+        #         )
 
 
 
@@ -725,9 +933,9 @@ class Trader:
 
         for prod, pos in state.position.items():
             if pos < 0:
-                OM.place_buy_order(Order(symbol=prod, price=1e9, quantity=1))
+                OM.place_buy_order(symbol=prod, price=1e9, quantity=1, is_take=False)
             elif pos > 0:
-                OM.place_sell_order(Order(symbol=prod, price=0, quantity=1))
+                OM.place_sell_order(symbol=prod, price=0, quantity=1, is_take=False)
 
 
 
@@ -931,22 +1139,31 @@ class OrderManager:
     """
     
     
-    def __init__(self, symbols, position_limits):
+    def __init__(self, symbols, position_limits, listings):
         self._buy_orders : Dict[Symbol, List[Order]] = {sym: [] for sym in symbols}
         self._sell_orders : Dict[Symbol, List[Order]] = {sym: [] for sym in symbols}
         self._position_limits = position_limits
         self._expected_change : Dict[Symbol, Position] = {sym: 0 for sym in symbols}
+        self._listings: List[Listing] = listings
 
 
-    def place_buy_order(self, order: Order):
+    def place_buy_order(self, symbol: Symbol, price: Price, quantity: int, is_take: bool):
         """ Queues a buy order
-        """
-        self._buy_orders[order.symbol] += [order]
 
-    def place_sell_order(self, order: Order):
+        If this order is a taking order, then it should update our expected position
+        """
+        self._buy_orders[symbol] += [Order(symbol, price, quantity)]
+        
+        if is_take:
+            self._update_expected_change(self._listings[symbol].product, +1 * quantity)
+
+    def place_sell_order(self, symbol: Symbol, price: Price, quantity: int, is_take: bool):
         """ Queues a sell order
         """
-        self._sell_orders[order.symbol] += [order]
+        self._sell_orders[symbol] += [Order(symbol, price, quantity)]
+
+        if is_take:
+            self._update_expected_change(self._listings[symbol].product, -1 * quantity)
 
 
     def get_rem_buy_size(self, state: TradingState, sym: Symbol) -> int:
@@ -989,7 +1206,7 @@ class OrderManager:
         return sum([ord.quantity for ord in orders])
 
 
-    def update_expected_change(self, prod: Product, change: int) -> None:
+    def _update_expected_change(self, prod: Product, change: int) -> None:
         self._expected_change[prod] += change
 
 
