@@ -3,7 +3,7 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 1000000
+MAX_TIME = 100000
 TIME_STEP = 100
 
 trader_position_limits : Dict[Product, int] = {

@@ -467,6 +467,27 @@ class Trader:
             self._position_limits[prod_b] // model_m,
         ))
 
+
+        def sigmoid(k, x):
+            return 1 / (1 + np.exp(-k*x))
+
+        def get_target_contract_pos_sigmoid(pred_error):
+
+            # sigmoid function is directly fit onto the error
+            fit_fn = lambda x : sigmoid(0.05435088, x)
+
+            ratio = fit_fn(pred_error)
+
+            # target pos is opposite sign of error
+            target_pos = -1 * ratio * max_contract_pos
+
+            # cap the bounds
+            target_pos = min(target_pos, max_contract_pos)
+            target_pos = max(target_pos, -1 * max_contract_pos)
+
+            return target_pos
+        
+
         def get_target_contract_pos_linear(pred_error):
             target_pos = -1 * (pred_error / 50) * max_contract_pos
             target_pos = min(target_pos, max_contract_pos)
@@ -526,7 +547,8 @@ class Trader:
 
         grid_lines = grid_lines4
         # get_target_contract_pos = lambda x : get_target_contract_pos_ngrid(grid_lines, x)
-        get_target_contract_pos = lambda x : get_target_contract_pos_gaussian(x)
+        # get_target_contract_pos = lambda x : get_target_contract_pos_gaussian(x)
+        get_target_contract_pos = lambda x : get_target_contract_pos_sigmoid(x)
 
         
         def get_cur_contract_pos():
