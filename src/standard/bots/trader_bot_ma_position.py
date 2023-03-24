@@ -23,6 +23,8 @@ MAX_POS = {
     "PINA_COLADAS": 300,
     # "COCONUTS": 300,
     # "PINA_COLADAS": 150,
+    "BERRIES":250,
+    "DIVING_GEAR":50,
 }
 
 PARAMS = {
@@ -40,6 +42,17 @@ PARAMS = {
         "BANANAS": True,
         "COCONUTS": True,
         "PINA_COLADAS": True,
+        "BERRIES": True,
+        "DIVING_GEAR": True,
+    },
+
+    "take_flag": {
+        "PEARLS": True,
+        "BANANAS": True,
+        "COCONUTS": False,
+        "PINA_COLADAS": False,
+        "BERRIES": True,
+        "DIVING_GEAR": True,
     },
 
     "make_flag": {
@@ -47,6 +60,8 @@ PARAMS = {
         "BANANAS": True,
         "COCONUTS": False,
         "PINA_COLADAS": False,
+        "BERRIES": True,
+        "DIVING_GEAR": True,
     },
 
     "pairs_model_weights": [1.55131931e+00, 2.59237689e+03],
@@ -94,6 +109,14 @@ WHALE_QUOTE_BOUNDS = {
         "spread": (2, 5), # (3, 4)
         "size": (40, 150), # (50, 120)
     },
+    'DIVING_GEAR':{
+        "spread": (2,5), # (3, 4)
+        "size": (8, 40), # (10, 30)
+    },
+    'BERRIES':{
+        "spread": (7, 10), # (8, 9)
+        "size": (35, 100), # (40, 80)
+    }
 }
 
 
@@ -108,7 +131,7 @@ REF_OPP_COSTS = {
 def init_ref_opp_costs():
     global REF_OPP_COSTS
 
-    for sym in ["PINA_COLADAS", "COCONUTS"]:
+    for sym in ["PINA_COLADAS", "COCONUTS", "BERRIES", "DIVING_GEAR"]:
         limit = MAX_POS[sym]
         REF_OPP_COSTS[sym] = {i: 0 for i in range(-limit, limit + 1)}
 
@@ -227,6 +250,7 @@ class Trader:
         self.match_size = PARAMS["match_size"]
         self.min_take_edge  = PARAMS["min_take_edge"]
         self.make_flag = PARAMS["make_flag"]
+        self.take_flag = PARAMS["take_flag"]
 
         # pairs trading logic
         pairs_model_weights = PARAMS["pairs_model_weights"]
@@ -254,11 +278,11 @@ class Trader:
         Preprocess.preprocess(state)
 
         # setup list of current products
-        self.products = set([listing.product for sym, listing in state.listings.items()])
-        self.symbols = set([listing.symbol for sym, listing in state.listings.items()])
+        self.symbols = set([sym for sym in state.order_depths.keys()])
+        self.products = set([state.listings[sym].product for sym in self.symbols])
 
-        self.products = sorted(list(self.products))
         self.symbols = sorted(list(self.symbols))
+        self.products = sorted(list(self.products))
 
         # reset _buy_orders/_sell_orders for this turn
         self.OM : OrderManager = OrderManager(
@@ -355,8 +379,8 @@ class Trader:
             # calc fair value
             fair_value = self.get_fair_value(sym)   
             mid_ema = self.get_ema_mid(sym)  
-
-            if sym in ["PEARLS", "BANANAS"]:
+            
+            if self.take_flag[sym]:
                 self.take_logic(
                     state=state,
                     sym=sym,
