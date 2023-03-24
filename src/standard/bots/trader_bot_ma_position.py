@@ -476,7 +476,7 @@ class Trader:
             # sigmoid function is directly fit onto the error
             fit_fn = lambda x : sigmoid(0.05435088, x)
 
-            ratio = fit_fn(pred_error)
+            ratio = (fit_fn(pred_error) - 0.5) / 0.5
 
             # target pos is opposite sign of error
             target_pos = -1 * ratio * max_contract_pos
@@ -488,57 +488,57 @@ class Trader:
             return target_pos
         
 
-        def get_target_contract_pos_linear(pred_error):
-            target_pos = -1 * (pred_error / 50) * max_contract_pos
-            target_pos = min(target_pos, max_contract_pos)
-            target_pos = max(target_pos, -1 * max_contract_pos)
+        # def get_target_contract_pos_linear(pred_error):
+        #     target_pos = -1 * (pred_error / 50) * max_contract_pos
+        #     target_pos = min(target_pos, max_contract_pos)
+        #     target_pos = max(target_pos, -1 * max_contract_pos)
 
-            # round target_pos to nearest 5
+        #     # round target_pos to nearest 5
 
-            target_pos = round(target_pos) 
+        #     target_pos = round(target_pos) 
 
-            return target_pos
+        #     return target_pos
 
-        def get_target_contract_pos_gaussian(pred_error):
+        # def get_target_contract_pos_gaussian(pred_error):
 
-            one_sd = 30
-            error_sigma = abs(pred_error) / one_sd
+        #     one_sd = 30
+        #     error_sigma = abs(pred_error) / one_sd
 
-            ratio = abs(NormalDist(mu=0, sigma=1).cdf(error_sigma) - 0.5) / 0.5
+        #     ratio = abs(NormalDist(mu=0, sigma=1).cdf(error_sigma) - 0.5) / 0.5
 
-            # target pos is opposite sign of error            
-            target_pos = -1 * np.sign(pred_error) * ratio * max_contract_pos
+        #     # target pos is opposite sign of error            
+        #     target_pos = -1 * np.sign(pred_error) * ratio * max_contract_pos
 
-            # cap the bounds
-            target_pos = min(target_pos, max_contract_pos)
-            target_pos = max(target_pos, -1 * max_contract_pos)
+        #     # cap the bounds
+        #     target_pos = min(target_pos, max_contract_pos)
+        #     target_pos = max(target_pos, -1 * max_contract_pos)
 
-            return target_pos
+        #     return target_pos
 
-        def get_target_contract_pos_ngrid(grid_lines, pred_error):
+        # def get_target_contract_pos_ngrid(grid_lines, pred_error):
 
-            one_sd = 30
-            error_sigma = abs(pred_error) / one_sd
+        #     one_sd = 30
+        #     error_sigma = abs(pred_error) / one_sd
 
-            # sanity check
-            total_grid_ratio = sum([ratio_diff for _, ratio_diff in grid_lines])
-            print(total_grid_ratio)
-            assert total_grid_ratio == 1
+        #     # sanity check
+        #     total_grid_ratio = sum([ratio_diff for _, ratio_diff in grid_lines])
+        #     print(total_grid_ratio)
+        #     assert total_grid_ratio == 1
 
-            # calculate our target ratio
-            ratio = 0
-            for sigma, ratio_diff in grid_lines:
-                if error_sigma > sigma:
-                    ratio += ratio_diff
+        #     # calculate our target ratio
+        #     ratio = 0
+        #     for sigma, ratio_diff in grid_lines:
+        #         if error_sigma > sigma:
+        #             ratio += ratio_diff
 
-            # target pos is opposite sign of error            
-            target_pos = -1 * np.sign(pred_error) * ratio * max_contract_pos
+        #     # target pos is opposite sign of error            
+        #     target_pos = -1 * np.sign(pred_error) * ratio * max_contract_pos
 
-            # normalize the bounds
-            target_pos = min(target_pos, max_contract_pos)
-            target_pos = max(target_pos, -1 * max_contract_pos)
+        #     # normalize the bounds
+        #     target_pos = min(target_pos, max_contract_pos)
+        #     target_pos = max(target_pos, -1 * max_contract_pos)
 
-            return target_pos
+        #     return target_pos
         
         
         # choose function for target_contract_pos
