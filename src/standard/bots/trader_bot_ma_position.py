@@ -474,12 +474,29 @@ class Trader:
         def get_target_contract_pos_sigmoid(pred_error):
 
             # sigmoid function is directly fit onto the error
-            fit_fn = lambda x : sigmoid(0.05435088, x)
+            fit_fn = lambda x : sigmoid(0.05435088 * 2.5, x)
 
             ratio = (fit_fn(pred_error) - 0.5) / 0.5
 
             # target pos is opposite sign of error
             target_pos = -1 * ratio * max_contract_pos
+
+            # cap the bounds
+            target_pos = min(target_pos, max_contract_pos)
+            target_pos = max(target_pos, -1 * max_contract_pos)
+
+            return target_pos
+
+        def get_target_contract_pos_custom_linear(pred_error):
+
+            # from 15 to 50, linearly max out positions
+            lb, ub = 20, 50
+
+            ratio = (abs(pred_error) - lb) / (ub - lb)
+            ratio = max(ratio, 0)
+
+            # target pos is opposite sign of error
+            target_pos = -1 * np.sign(pred_error) * ratio * max_contract_pos
 
             # cap the bounds
             target_pos = min(target_pos, max_contract_pos)
@@ -549,6 +566,7 @@ class Trader:
         # get_target_contract_pos = lambda x : get_target_contract_pos_ngrid(grid_lines, x)
         # get_target_contract_pos = lambda x : get_target_contract_pos_gaussian(x)
         get_target_contract_pos = lambda x : get_target_contract_pos_sigmoid(x)
+        # get_target_contract_pos = lambda x : get_target_contract_pos_custom_linear(x)
 
         
         def get_cur_contract_pos():
@@ -609,15 +627,15 @@ class Trader:
                 contract_diff = target_contract_pos - cur_contract_pos
                 contract_diff_size = abs(contract_diff)
 
-                print("\nSELL")
-                print("pred", price_a, price_a_pred)
-                print("pred_error", pred_error)
-                print("target", target_contract_pos, cur_contract_pos)
-                print("diff", contract_diff)
+                # print("\nSELL")
+                # print("pred", price_a, price_a_pred)
+                # print("pred_error", pred_error)
+                # print("target", target_contract_pos, cur_contract_pos)
+                # print("diff", contract_diff)
 
                 # if we want to sell
                 if contract_diff < 0:
-                    print("try to sell", contract_diff_size)
+                    # print("try to sell", contract_diff_size)
 
                     # see trade limits
                     limit_a = OM.get_rem_sell_size(state, sym_a)
@@ -676,16 +694,16 @@ class Trader:
                 contract_diff = target_contract_pos - cur_contract_pos
                 contract_diff_size = abs(contract_diff)
 
-                print("\nBUY")
-                print("pred", price_a, price_a_pred)
-                print("pred_error", pred_error)
-                print("target", target_contract_pos, cur_contract_pos)
-                print("diff", contract_diff)
+                # print("\nBUY")
+                # print("pred", price_a, price_a_pred)
+                # print("pred_error", pred_error)
+                # print("target", target_contract_pos, cur_contract_pos)
+                # print("diff", contract_diff)
 
 
                 # if we want to buy
                 if contract_diff > 0:
-                    print("try to buy", contract_diff_size)
+                    # print("try to buy", contract_diff_size)
                     
                     # see trade limits
                     limit_a = OM.get_rem_buy_size(state, sym_a)
@@ -729,21 +747,21 @@ class Trader:
             cur_contract_pos, diff_A, diff_B = get_cur_contract_pos()
             trade_size_A, trade_size_B = abs(diff_A), abs(diff_B)
 
-            print("\nHEDGE")
-            print("cur_pos", OM.get_expected_pos(state, prod_a), OM.get_expected_pos(state, prod_b))
-            print(cur_contract_pos, diff_A, diff_B, trade_size_A, trade_size_B)
+            # print("\nHEDGE")
+            # print("cur_pos", OM.get_expected_pos(state, prod_a), OM.get_expected_pos(state, prod_b))
+            # print(cur_contract_pos, diff_A, diff_B, trade_size_A, trade_size_B)
 
             # hedge A
             if abs(diff_A) > hedge_margin:
                 if diff_A > 0: # we are too long, need to sell
-                    print("hedging sell A")
+                    # print("hedging sell A")
                     self.place_take_best_sell(
                         state=state,
                         sym=sym_a,
                         max_quantity=trade_size_A,
                     )
                 else: # we are too short, need to buy
-                    print("hedging buy A")
+                    # print("hedging buy A")
                     self.place_take_best_buy(
                         state=state,
                         sym=sym_a,
@@ -753,14 +771,14 @@ class Trader:
             # hedge B
             if abs(diff_B) > hedge_margin * model_m:
                 if diff_B > 0: # we are too long, need to sell
-                    print("hedging sell B")
+                    # print("hedging sell B")
                     self.place_take_best_sell(
                         state=state,
                         sym=sym_b,
                         max_quantity=trade_size_B,
                     )
                 else: # we are too short, need to buy
-                    print("hedging buy B")
+                    # print("hedging buy B")
                     self.place_take_best_buy(
                         state=state,
                         sym=sym_b,

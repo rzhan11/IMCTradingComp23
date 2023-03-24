@@ -30,7 +30,15 @@ class Fair:
             "COCONUTS": 1.5 / 100,
         }
 
+        # pre-calculate fairs
         self.price_df = price_df
+        self.all_fairs = {
+            prod: self.price_df[self.price_df["symbol"] == prod].set_index("time")["mid_price"].to_dict()
+            for prod in products
+        }
+
+
+
         # self._update_func = self.update_lognormal
         self._update_func = self.update_mid_price
 
@@ -46,10 +54,7 @@ class Fair:
 
     # update fair values based on the mid price
     def update_mid_price(self, timestamp, prod):
-        time_state = self.price_df[(self.price_df["time"] == timestamp)
-                & (self.price_df["symbol"] == prod)]
-        mid_price = time_state["mid_price"].values[-1]
-        self.value[prod] = mid_price
+        self.value[prod] = self.all_fairs[prod][timestamp]
 
     def update_lognormal(self, prod):
         value = self.value[prod]

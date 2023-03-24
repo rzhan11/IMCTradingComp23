@@ -3,7 +3,7 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 1000000
+MAX_TIME = 3000000
 TIME_STEP = 100
 
 trader_position_limits : Dict[Product, int] = {
@@ -58,8 +58,10 @@ SYMBOLS = list(LISTINGS.keys())
 
 """ read csvs into dataframe """
 
-_day_range = [1]
-# _day_range = [-1, 0, 1]
+# _day_range = [1]
+_day_range = [-1, 0, 1]
+
+_time_in_day = 1000000
 _round_num = 2
 
 def get_file_trades(day):
@@ -85,6 +87,7 @@ for day in _day_range:
     trades += [trade_df]
     prices += [price_df]
 
+
 # concat all data
 trade_df = pd.concat(trades)
 price_df = pd.concat(prices)
@@ -102,9 +105,10 @@ price_df = price_df.rename({"product": "symbol"}, axis=1)
 price_df = price_df.rename({"timestamp": "time"}, axis=1)
 trade_df = trade_df.rename({"timestamp": "time"}, axis=1)
 
+
 # calculate new time (for multiday)
-trade_df["time"] = trade_df["time"] + (trade_df["day"] - min(_day_range)) * MAX_TIME
-price_df["time"] = price_df["time"] + (price_df["day"] - min(_day_range)) * MAX_TIME
+trade_df["time"] = trade_df["time"] + (trade_df["day"] - min(_day_range)) * _time_in_day
+price_df["time"] = price_df["time"] + (price_df["day"] - min(_day_range)) * _time_in_day
 
 # rename "bid" to "buy"
 # rename "ask" to "sell"
@@ -119,7 +123,7 @@ from .fair import Fair
 
 FAIR = Fair(
     products=PRODUCTS,
-    price_df=price_df
+    price_df=price_df,
 )
 
 from .bots.taker_bot import TakerBot
