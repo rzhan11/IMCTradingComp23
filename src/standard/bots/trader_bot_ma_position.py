@@ -21,10 +21,8 @@ MAX_POS = {
     "BANANAS": 20,
     "COCONUTS": 600,
     "PINA_COLADAS": 300,
-    # "COCONUTS": 300,
-    # "PINA_COLADAS": 150,
-    "BERRIES":250,
-    "DIVING_GEAR":50,
+    "BERRIES": 250,
+    "DIVING_GEAR": 50,
 }
 
 PARAMS = {
@@ -64,7 +62,7 @@ PARAMS = {
         "DIVING_GEAR": True,
     },
 
-    "pairs_model_weights": [1.55131931e+00, 2.59237689e+03],
+    "pairs_model_weights": [1.5, 3000],
 
     "match_size": False,
 
@@ -79,7 +77,7 @@ PARAMS = {
     # how many days to test EMA against true
     "DM.ema_test_days": 100,
 
-    "DM.ema_spans": [21],
+    "DM.ema_spans": [21, 100],
     # "DM.ema_spans": [3, 10, 21, 100],
     # "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
 }
@@ -256,6 +254,9 @@ class Trader:
         pairs_model_weights = PARAMS["pairs_model_weights"]
         self.pairs_model = np.poly1d(pairs_model_weights)
 
+        # macd vars
+        # self.macd_pos = 0
+
 
     def turn_start(self, state: TradingState):
         # measure time
@@ -394,6 +395,15 @@ class Trader:
                     sym=sym,
                     fair_value=fair_value,
                 )
+            
+            # macd logic
+            # if sym in ["COCONUTS", "PINA_COLADAS"]:
+            #     self.macd_logic(
+            #         state=state,
+            #         sym=sym,
+            #         fair_value=fair_value,
+            #         ema=mid_ema,
+            #     )
 
         self.pairs_trading_logic(
             state=state, 
@@ -466,7 +476,7 @@ class Trader:
                 quantity=min([limit, quantity, max_quantity]),
                 is_take=True,
             )
-
+                    
 
     def pairs_trading_logic(self, 
             state: TradingState,
@@ -490,108 +500,25 @@ class Trader:
             self._position_limits[prod_a] // 1,
             self._position_limits[prod_b] // model_m,
         ))
-
-
-        def sigmoid(k, x):
-            return 1 / (1 + np.exp(-k*x))
-
-        def get_target_contract_pos_sigmoid(pred_error):
-
-            # sigmoid function is directly fit onto the error
-            fit_fn = lambda x : sigmoid(0.05435088 * 2, x)
-
-            ratio = (fit_fn(pred_error) - 0.5) / 0.5
-
-            # target pos is opposite sign of error
-            target_pos = -1 * ratio * max_contract_pos
-
-            # cap the bounds
-            target_pos = min(target_pos, max_contract_pos)
-            target_pos = max(target_pos, -1 * max_contract_pos)
-
-            return target_pos
-
-        def get_target_contract_pos_custom_linear(pred_error):
-
-            # from 15 to 50, linearly max out positions
-            lb, ub = 20, 50
-
-            ratio = (abs(pred_error) - lb) / (ub - lb)
-            ratio = max(ratio, 0)
-
-            # target pos is opposite sign of error
-            target_pos = -1 * np.sign(pred_error) * ratio * max_contract_pos
-
-            # cap the bounds
-            target_pos = min(target_pos, max_contract_pos)
-            target_pos = max(target_pos, -1 * max_contract_pos)
-
-            return target_pos
         
+        def get_target_contract_pos(pred_error, cur_pair_pos):
 
-        # def get_target_contract_pos_linear(pred_error):
-        #     target_pos = -1 * (pred_error / 50) * max_contract_pos
-        #     target_pos = min(target_pos, max_contract_pos)
-        #     target_pos = max(target_pos, -1 * max_contract_pos)
+            grid_line = 14.25 - 0.01 # 14.25
 
-        #     # round target_pos to nearest 5
-
-        #     target_pos = round(target_pos) 
-
-        #     return target_pos
-
-        # def get_target_contract_pos_gaussian(pred_error):
-
-        #     one_sd = 30
-        #     error_sigma = abs(pred_error) / one_sd
-
-        #     ratio = abs(NormalDist(mu=0, sigma=1).cdf(error_sigma) - 0.5) / 0.5
-
-        #     # target pos is opposite sign of error            
-        #     target_pos = -1 * np.sign(pred_error) * ratio * max_contract_pos
-
-        #     # cap the bounds
-        #     target_pos = min(target_pos, max_contract_pos)
-        #     target_pos = max(target_pos, -1 * max_contract_pos)
-
-        #     return target_pos
-
-        # def get_target_contract_pos_ngrid(grid_lines, pred_error):
-
-        #     one_sd = 30
-        #     error_sigma = abs(pred_error) / one_sd
-
-        #     # sanity check
-        #     total_grid_ratio = sum([ratio_diff for _, ratio_diff in grid_lines])
-        #     print(total_grid_ratio)
-        #     assert total_grid_ratio == 1
-
-        #     # calculate our target ratio
-        #     ratio = 0
-        #     for sigma, ratio_diff in grid_lines:
-        #         if error_sigma > sigma:
-        #             ratio += ratio_diff
-
-        #     # target pos is opposite sign of error            
-        #     target_pos = -1 * np.sign(pred_error) * ratio * max_contract_pos
-
-        #     # normalize the bounds
-        #     target_pos = min(target_pos, max_contract_pos)
-        #     target_pos = max(target_pos, -1 * max_contract_pos)
-
-        #     return target_pos
-        
-        
-        # choose function for target_contract_pos
-        grid_lines4 = [(0.5, 0.45), (1, 0.4), (2, 0.13), (3, 0.02)]
-        # grid_lines3 = [(1, 0.8), (2, 0.18), (3, 0.02)]
-
-        grid_lines = grid_lines4
-        # get_target_contract_pos = lambda x : get_target_contract_pos_ngrid(grid_lines, x)
-        # get_target_contract_pos = lambda x : get_target_contract_pos_gaussian(x)
-        get_target_contract_pos = lambda x : get_target_contract_pos_sigmoid(x)
-        # get_target_contract_pos = lambda x : get_target_contract_pos_custom_linear(x)
-
+            if abs(pred_error) > grid_line:
+                if pred_error > 0: # if A is overpriced, sell it
+                    return -1 * max_contract_pos
+                else: # if A is underpriced, buy it
+                    return +1 * max_contract_pos
+            else:
+                # if we are not past the line, make sure our position is the correct sign
+                if np.sign(cur_pair_pos) != np.sign(pred_error):
+                    # if error is positive, and our position is negative
+                    # we can keep our position
+                    return cur_pair_pos
+                else:
+                    return 0
+                
         
         def get_cur_contract_pos():
             """ Returns 'cur_contract_pos', 'diff_a', 'diff_b'
@@ -644,8 +571,8 @@ class Trader:
                 pred_error = price_a - price_a_pred
 
                 # get cur/target contract pos
-                target_contract_pos = get_target_contract_pos(pred_error)
                 cur_contract_pos, diff_A, diff_B = get_cur_contract_pos()
+                target_contract_pos = get_target_contract_pos(pred_error, cur_contract_pos)
 
 
                 contract_diff = target_contract_pos - cur_contract_pos
@@ -712,8 +639,8 @@ class Trader:
                 pred_error = price_a - price_a_pred
 
                 # get cur/target contract pos
-                target_contract_pos = get_target_contract_pos(pred_error)
                 cur_contract_pos, diff_A, diff_B = get_cur_contract_pos()
+                target_contract_pos = get_target_contract_pos(pred_error, cur_contract_pos)
 
                 contract_diff = target_contract_pos - cur_contract_pos
                 contract_diff_size = abs(contract_diff)
@@ -815,8 +742,52 @@ class Trader:
         hedge()
         
 
-
+    def macd_logic(self, 
+            state: TradingState,
+            sym: Symbol, 
+            fair_value: float,
+            ema: float,
+            ):
         
+        print("macd_logic", sym)
+        
+        buys, sells = self.all_buys[sym], self.all_sells[sym]
+        OM = self.OM
+        prod = state.listings[sym].product
+        
+        # get mid price, margin, and macd
+        mid_price = self.DM.history[sym][-1]['mid']
+        margin = mid_price * 0.005 / 10
+        macd = self.DM.history[sym][-1]['macd']
+
+        # print(mid_price, margin, macd, self.macd_pos)
+
+        if macd > 0 + margin:
+        # if macd > 0 + margin and self.macd_pos <= 0:
+            limit = OM.get_rem_buy_size(state, sym)
+            price, quantity = sells[0]
+
+            OM.place_buy_order(
+                symbol=sym,
+                price=price,
+                quantity=min(quantity, limit),
+                is_take=True,
+            )
+            # self.macd_pos = 1
+
+        if macd < 0 - margin:
+        # if macd < 0 - margin and self.macd_pos >= 0:
+            limit = OM.get_rem_sell_size(state, sym)
+            price, quantity = buys[0]
+
+            OM.place_sell_order(
+                symbol=sym,
+                price=price,
+                quantity=min(quantity, limit),
+                is_take=True,
+            )
+            # self.macd_pos = -1
+
 
     def take_logic(self, 
             state: TradingState,
@@ -1096,6 +1067,7 @@ class Trader:
 
         s = state.toJSON()
 
+        print("_"*100)
         print(f"__game_state_start\n{s}\n__game_state_end\n")
 
         
@@ -1152,6 +1124,7 @@ class Trader:
         # convert obj to 
         s = json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True)
 
+        print("_"*100)
         print(f"__turn_end_start\n{s}\n__turn_end_end")
 
 
@@ -1264,6 +1237,11 @@ class DataManager:
 
             best_score, best_ema_span = min(scores)
 
+        # macd calculations
+        fast_ema = new_emas[21]
+        slow_ema = new_emas[100]
+        macd = fast_ema - slow_ema
+
         # add obj to history
         obj = {
             "best_buy": best_buy,
@@ -1272,6 +1250,7 @@ class DataManager:
             "emas": new_emas,
             "best_ema": new_emas[best_ema_span],
             "best_ema_span": best_ema_span,
+            "macd": macd,
         }
         self.history[sym] += [obj]
 

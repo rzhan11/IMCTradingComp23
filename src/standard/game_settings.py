@@ -3,7 +3,7 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 100000
+MAX_TIME = 3000000
 TIME_STEP = 100
 
 trader_position_limits : Dict[Product, int] = {
@@ -11,6 +11,8 @@ trader_position_limits : Dict[Product, int] = {
     "PEARLS": 20,
     "COCONUTS": 600,
     "PINA_COLADAS": 300,
+    "BERRIES": 250,
+    "DIVING_GEAR": 50,
     "SEASHELLS": float("inf")
 }
 
@@ -37,6 +39,16 @@ LISTINGS : Dict[Symbol, Listing] = {
         product = "PINA_COLADAS",
         denomination = 1,
     ),
+    "BERRIES": Listing(
+        symbol = "BERRIES",
+        product = "BERRIES",
+        denomination = 1,
+    ),
+    "DIVING_GEAR": Listing(
+        symbol = "DIVING_GEAR",
+        product = "DIVING_GEAR",
+        denomination = 1,
+    ),
 }
 # LISTINGS : Dict[Symbol, Dict] = {
 #     "BANANAS": {
@@ -58,8 +70,9 @@ SYMBOLS = list(LISTINGS.keys())
 
 """ read csvs into dataframe """
 
-_day_range = [1]
+# _day_range = [1]
 # _day_range = [-1, 0, 1]
+_day_range = [0, 1, 2]
 
 _time_in_day = 1000000
 _round_num = 3

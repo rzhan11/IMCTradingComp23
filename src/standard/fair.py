@@ -20,6 +20,8 @@ class Fair:
             "PEARLS": 10000,
             "COCONUTS": 8000,
             "PINA_COLADAS": 15000,
+            "BERRIES": 4000,
+            "DIVING_GEAR": 100000,
             "SEASHELLS": 1,
         }
 
