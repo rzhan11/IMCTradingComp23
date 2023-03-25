@@ -698,21 +698,21 @@ class Trader:
             cur_contract_pos, diff_A, diff_B = get_cur_contract_pos()
             trade_size_A, trade_size_B = abs(diff_A), abs(diff_B)
 
-            # print("\nHEDGE")
-            # print("cur_pos", OM.get_expected_pos(state, prod_a), OM.get_expected_pos(state, prod_b))
-            # print(cur_contract_pos, diff_A, diff_B, trade_size_A, trade_size_B)
+            print("\nHEDGE")
+            print("cur_pos", OM.get_expected_pos(state, prod_a), OM.get_expected_pos(state, prod_b))
+            print(cur_contract_pos, diff_A, diff_B, trade_size_A, trade_size_B)
 
             # hedge A
             if abs(diff_A) > hedge_margin:
                 if diff_A > 0: # we are too long, need to sell
-                    # print("hedging sell A")
+                    print("hedging sell A")
                     self.place_take_best_sell(
                         state=state,
                         sym=sym_a,
                         max_quantity=trade_size_A,
                     )
                 else: # we are too short, need to buy
-                    # print("hedging buy A")
+                    print("hedging buy A")
                     self.place_take_best_buy(
                         state=state,
                         sym=sym_a,
@@ -722,14 +722,14 @@ class Trader:
             # hedge B
             if abs(diff_B) > hedge_margin * model_m:
                 if diff_B > 0: # we are too long, need to sell
-                    # print("hedging sell B")
+                    print("hedging sell B")
                     self.place_take_best_sell(
                         state=state,
                         sym=sym_b,
                         max_quantity=trade_size_B,
                     )
                 else: # we are too short, need to buy
-                    # print("hedging buy B")
+                    print("hedging buy B")
                     self.place_take_best_buy(
                         state=state,
                         sym=sym_b,

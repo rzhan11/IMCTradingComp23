@@ -6,6 +6,13 @@ import pandas as pd
 MAX_TIME = 3000000
 TIME_STEP = 100
 
+# _day_range = [1]
+# _day_range = [-1, 0, 1]
+_day_range = [0, 1, 2]
+
+_time_in_day = 1000000
+_round_num = 3
+
 trader_position_limits : Dict[Product, int] = {
     "BANANAS": 20,
     "PEARLS": 20,
@@ -69,13 +76,6 @@ SYMBOLS = list(LISTINGS.keys())
 
 
 """ read csvs into dataframe """
-
-# _day_range = [1]
-# _day_range = [-1, 0, 1]
-_day_range = [0, 1, 2]
-
-_time_in_day = 1000000
-_round_num = 3
 
 def get_file_trades(day):
     fname = f"../data/round{_round_num}/trades_round_{_round_num}_day_{day}_nn.csv"
