@@ -16,6 +16,8 @@ MAX_POS = {
     "BANANAS": 20,
     "COCONUTS": 600,
     "PINA_COLADAS": 300,
+    "BERRIES": 300,
+    'DIVING_GEAR': 50, 
 }
 
 PARAMS = {
@@ -39,8 +41,9 @@ PARAMS = {
     # how many days to test EMA against true
     "DM.ema_test_days": 120,
 
-    "DM.ema_spans": [21,100],
+    "DM.ema_spans": [12,36],
 
+    'rela':1.81
     # "DM.ema_spans": [3, 10, 21, 100],
     # "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
 }
@@ -57,6 +60,7 @@ dynamic EMA
 - no closing at end of game
 """
 
+
 class Logger:
     def __init__(self) -> None:
         self.logs = ""
@@ -65,23 +69,17 @@ class Logger:
         self.logs += sep.join(map(str, objects)) + end
 
     def flush(self, state: TradingState, orders: dict[Symbol, list[Order]]) -> None:
-        logs = self.logs
-        if logs.endswith("\n"):
-            logs = logs[:-1]
-
-        _print(json.dumps({
+        print(json.dumps({
             "state": state,
             "orders": orders,
-            "logs": logs,
+            "logs": self.logs,
         }, cls=ProsperityEncoder, separators=(",", ":"), sort_keys=True))
 
-        self.state = None
-        self.orders = {}
         self.logs = ""
 
-
 logger = Logger()
-_print = print
+
+
 # print = logger.print
 
 class Trader:
@@ -93,7 +91,7 @@ class Trader:
             ):
         
         # print description to help identify bot/params
-        print(_description)
+        logger.print(_description)
 
         # local engine vars
         self._player_id = player_id
@@ -121,6 +119,7 @@ class Trader:
         self.max_timestamp = PARAMS["max_timestamp"]
         self.time_step = PARAMS["time_step"]
         self.long=0
+        self.long_berry=0
         self.is_penny = PARAMS["is_penny"]
         self.match_size = PARAMS["match_size"]
 
@@ -133,9 +132,9 @@ class Trader:
         # print round header
         self.turn += 1
 
-        print("-"*50)
-        print(f"Round {state.timestamp}, {self.turn}")
-        print("-"*50)
+        logger.print("-"*50)
+        logger.print(f"Round {state.timestamp}, {self.turn}")
+        logger.print("-"*50)
 
 
 
@@ -167,7 +166,6 @@ class Trader:
         """ Called by game engine, returns dict of buy/sell orders
         """
 
-        _print("_"*100)
 
         state_json = json.loads(state.toJSON())
 
@@ -177,7 +175,6 @@ class Trader:
 
         # main body
         self.run_internal(state)
-
         # cleanup / info reporting section
         orders = self.turn_end(state)
         
@@ -245,7 +242,7 @@ class Trader:
 
             mid_ema = sym_history[-1]["best_ema"]
             mid_ema_span = sym_history[-1]["best_ema_span"]
-            print(f"{sym} EMA (span: {mid_ema_span}), {mid_ema}")
+            logger.print(f"{sym} EMA (span: {mid_ema_span}), {mid_ema}")
 
 
             if sym in round_1_goods:
@@ -264,6 +261,16 @@ class Trader:
                     sells=sells, 
                     mid_ema=mid_ema,
                 )
+            if sym ==' BERRIES':
+
+                self.take_logic_3(
+                state=state,
+                sym=sym,
+                buys=buys,
+                sells=sells, 
+                mid_ema=mid_ema,
+                )
+
             else: 
                 self.take_logic_2(
                 state=state,
@@ -320,22 +327,68 @@ class Trader:
         OM = self.OM
         limit = OM.get_rem_sell_size(state, sym)
         limit_buy= OM.get_rem_buy_size(state, sym)
-        margin= self.DM.history[sym][-1]['mid']*0.005
+        margin= self.DM.history[sym][-1]['mid']*0.0002
         if self.DM.history[sym][-1]['macd']>0+margin and self.long<=0:
                 OM.place_buy_order(Order(
                         symbol=sym,
-                        price=sells[0][0],
-                        quantity=min(limit,sells[0][1])
+                        price=sells[-1][0],
+                        quantity=limit
                     ))
                 self.long=1
 
-        if self.DM.history[sym][-1]['macd']<0-margin and self.long>=0:
+        if self.DM.history[sym][-1]['macd']< 0-margin and self.long>=0:
                 OM.place_sell_order(Order(
                         symbol=sym,
-                        price=buys[0][0],
-                        quantity=min(limit_buy,buys[0][1])
+                        price=buys[-1][0],
+                        quantity=limit_buy
                     ))
-                self.long=-1                   
+                self.long=-1 
+
+    def take_logic_3( self, 
+            state: TradingState,
+            sym: Symbol, 
+            buys: List[Tuple[Price, Position]], 
+            sells: List[Tuple[Price, Position]], 
+            mid_ema: float,
+            ):
+
+            if len(self.DM.history[sym]) <500: 
+                OM = self.OM
+                limit = OM.get_rem_sell_size(state, sym)
+                limit_buy= OM.get_rem_buy_size(state, sym)
+                margin= self.DM.history[sym][-1]['mid']*0.0005
+                if self.DM.history[sym][-1]['macd']>0+margin and self.long_berry<=0:
+                    OM.place_buy_order(Order(
+                        symbol=sym,
+                        price=sells[-1][0],
+                        quantity=limit
+                    ))
+                    self.long_berry=1
+
+                if self.DM.history[sym][-1]['macd']< 0-margin and self.long_berry>=0:
+                    OM.place_sell_order(Order(
+                        symbol=sym,
+                        price=buys[-1][0],
+                        quantity=limit_buy
+                    ))
+                    self.long_berry=-1 
+
+            else: 
+                if mid_ema < self.DM.history[sym][-1]['highest'] and self.long_berry>=0:
+
+                    limit_buy= OM.get_rem_buy_size(state, sym)
+                    OM.place_sell_order(Order(
+                        symbol=sym,
+                        price=buys[-1][0],
+                        quantity=limit_buy
+                    ))
+                    self.long_berry=-1
+            
+    
+
+
+        
+                          
 
     def make_logic(self, 
             state: TradingState,
@@ -453,12 +506,16 @@ class Trader:
         """
 
         OM = self.OM
+        good_sym=[]
+        for sym in self.symbols:
+            if sym != 'DOLPHIN_SIGHTINGS':
+                good_sym.append(sym)
 
         my_orders = {sym: { "buy_orders": OM._buy_orders[sym], "sell_orders": OM._sell_orders[sym] } for sym in self.symbols}
 
-        emas = { sym: self.DM.history[sym][-1]["emas"] for sym in self.symbols }
-        best_emas = { sym: self.DM.history[sym][-1]["best_ema"] for sym in self.symbols }
-        best_ema_spans = { sym: self.DM.history[sym][-1]["best_ema_span"] for sym in self.symbols }
+        emas = { sym: self.DM.history[sym][-1]["emas"] for sym in good_sym }
+        best_emas = { sym: self.DM.history[sym][-1]["best_ema"] for sym in good_sym }
+        best_ema_spans = { sym: self.DM.history[sym][-1]["best_ema_span"] for sym in good_sym }
 
 
         obj = {
@@ -501,8 +558,10 @@ class DataManager:
         self.ema_test_days = ema_test_days
         self.ema_spans = ema_spans
         self.default_ema_span = ema_spans[0]
-
+        self.rela=PARAMS["rela"]
+        self.rela_ema=[]
         self.history = {}
+        self.dolph=[]
 
 
     def add_history(self, state: TradingState, symbols: List[Symbol], products: List[Product]):
@@ -513,8 +572,13 @@ class DataManager:
         self.symbols = symbols
         self.products = products
 
+       
+
         for sym in symbols:
-            self.add_history_sym(state, sym)
+            if sym=='DOLPHIN_SIGHTINGS':
+                    continue
+            else:
+                self.add_history_sym(state, sym)
 
     def add_history_sym(self, state: TradingState, sym: Symbol):
         # add sym to history if not present
@@ -534,6 +598,11 @@ class DataManager:
             best_sell = sells[0][0]
 
         mid = (best_buy + best_sell) / 2
+
+        if len(sym_history)==0 or mid > sym_history[-1]["highest"]:
+            high_res=mid
+        else:
+            high_res= sym_history[-1]["highest"]
         # get previous emas
         if len(sym_history) == 0:
             old_emas = {span: mid for span in self.ema_spans}
@@ -592,6 +661,11 @@ class DataManager:
 
             best_score, best_ema_span = min(scores)
 
+
+                
+            
+
+
         # add obj to history
         obj = {
             "best_buy": best_buy,
@@ -600,7 +674,8 @@ class DataManager:
             "emas": new_emas,
             "best_ema": new_emas[best_ema_span],
             "best_ema_span": best_ema_span,
-            'macd': macd
+            'macd': macd,
+            'highest': high_res
         }
         self.history[sym] += [obj]
 
