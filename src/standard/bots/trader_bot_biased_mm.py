@@ -263,7 +263,7 @@ class Trader:
                 )
             if sym ==' BERRIES':
 
-                self.take_logic_3(
+                self.make_logic_2(
                 state=state,
                 sym=sym,
                 buys=buys,
@@ -453,17 +453,53 @@ class Trader:
                     limit_1=int(limit)
                     limit_2=limit-limit_1
                     order_quantity_1 = limit_1
-                    order_quantity_2= limit_2
+                    
                 else:
                     limit_1=int(limit)
                     limit_2=limit-limit_1
                     order_quantity_1 = limit_1
-                    order_quantity_2= limit_2
+                    
                 OM.place_sell_order(Order(
                     symbol=sym,
                     price=price,
                     quantity=order_quantity_1,
                 ))
+
+    def make_logic_2(self, 
+            state: TradingState,
+            sym: Symbol, 
+            buys: List[Tuple[Price, Position]], 
+            sells: List[Tuple[Price, Position]], 
+            mid_ema: float,
+            ):
+        if len(self.DM.history[sym]) <500:
+            self.make_logic(state,sym,buys,sells,mid_ema)
+
+        else: 
+            OM = self.OM
+            limit = OM.get_rem_sell_size(state, sym)
+            if limit > 0:
+                price= int(self.DM.history[sym][-1]['mid'])
+                OM.place_sell_order(Order(
+                    symbol=sym,
+                    price=price,
+                    quantity=min(limit,sells[0][1]),
+                ))
+            
+            lim_buy= OM.get_rem_buy_size(state, sym)
+            lim_buy= min(lim_buy,100)
+            if lim_buy>0:
+                price= buys[0][0]-1
+                OM.place_buy_order(Order(
+                    symbol=sym,
+                    price=price,
+                    quantity=min(lim_buy,buys[0][1]),
+                ))
+
+
+
+
+
 
 
 
