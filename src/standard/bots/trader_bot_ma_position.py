@@ -49,7 +49,7 @@ PARAMS = {
         "BANANAS": True,
         "COCONUTS": False,
         "PINA_COLADAS": False,
-        "BERRIES": False,
+        "BERRIES": True,
         "DIVING_GEAR": True,
     },
 
@@ -58,7 +58,7 @@ PARAMS = {
         "BANANAS": True,
         "COCONUTS": False,
         "PINA_COLADAS": False,
-        "BERRIES": False,
+        "BERRIES": True,
         "DIVING_GEAR": True,
     },
 
@@ -428,6 +428,12 @@ class Trader:
             #     )
 
         self.pairs_trading_logic(
+            state=state, 
+            sym_a="PINA_COLADAS", 
+            sym_b="COCONUTS", 
+        )
+
+        self.take_gear_logic(
             state=state, 
             sym_a="PINA_COLADAS", 
             sym_b="COCONUTS", 
@@ -1145,6 +1151,10 @@ class DataManager:
         for sym in symbols:
             self.add_history_sym(state, sym)
 
+        for obs_name in ["DOLPHIN_SIGHTINGS"]:
+            self.add_history_obs(state, obs_name)
+            
+
     def add_history_sym(self, state: TradingState, sym: Symbol):
         # add sym to history if not present
         if sym not in self.history:
@@ -1235,6 +1245,19 @@ class DataManager:
         self.history[sym] += [obj]
 
 
+    def add_history_obs(self, state: TradingState, obs_name: str):
+        # add sym to history if not present
+        if obs_name not in self.history:
+            self.history[obs_name] = []
+
+        obs_history = self.history[obs_name]
+        mid = state.observations[obs_history]
+
+        obj = {
+            "mid": mid
+        }
+
+        obs_history += [obj]
 
 
 class OrderManager:
