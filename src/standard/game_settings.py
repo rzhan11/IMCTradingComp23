@@ -8,10 +8,11 @@ TIME_STEP = 100
 
 # _day_range = [1]
 # _day_range = [-1, 0, 1]
-_day_range = [0, 1, 2]
+# _day_range = [0, 1, 2]
+_day_range = [3]
 
 _time_in_day = 1000000
-_round_num = 3
+_round_num = 4
 
 trader_position_limits : Dict[Product, int] = {
     "BANANAS": 20,

@@ -829,13 +829,18 @@ class Trader:
             state: TradingState,
             sym: Symbol, 
             fair_value: float,
+            custom_opp_cost: Dict[Position, float]=None,
             ):
         
         buys, sells = self.all_buys[sym], self.all_sells[sym]
         OM = self.OM
         prod = state.listings[sym].product
 
+        # setup opp costs
         OPP_COST = REF_OPP_COSTS[prod]
+        # use custom_opp_cost sometimes
+        if custom_opp_cost is not None:
+            OPP_COST = custom_opp_cost
 
 
         # take orders on buy_side (we sell to existing buy orders)
@@ -937,14 +942,26 @@ class Trader:
         # print("gear_logic", len(sym_history), len(obs_history))
 
         ## skip if no history
-        min_history_len = 10
+        min_history_len = 2
         if len(sym_history) < min_history_len or len(obs_history) < min_history_len:
             return
         
         
         # get historical dol levels
-        cur_dol = obs_history[-1]["mid"]
-        past_dol = obs_history[-2]["mid"]
+        cur_obs = obs_history[-1]
+        past_obs = obs_history[-2]
+
+        # sanity check our historical data
+        if cur_obs["time"] != state.timestamp or past_obs["time"] != state.timestamp - self.time_step:
+            print("WARNING: take_gear_logic bad history obs")
+            print("cur", cur_obs)
+            print("prev", past_obs)
+            return
+
+
+        cur_dol = cur_obs["mid"]
+        past_dol = past_obs["mid"]
+        
 
         dol_change = cur_dol - past_dol
         # print("dols", cur_dol, past_dol, dol_change)
@@ -978,39 +995,97 @@ class Trader:
         """ end of var setup """
 
         cycle_time = (state.timestamp % 1000000) / 1000000
-        
+        fair_value = self.get_fair_value(sym)        
+        limit = max_position_limit
 
         print("cycle_time", cycle_time)
 
-        fair_value = self.get_fair_value(sym)
-        
-        limit = max_position_limit
-
-        used_opp_cost = None
-
         # timing constants
-        max_gain = 40
-        max_gain_duration = 1 / 6
+        base_trade_rate = 1.6 / 2
+        max_gain, max_loss = 40, -40
+        gain_start, gain_end = 10000 * 1 / 3, 10000 * 1/2
+        loss_start, loss_end = 10000 * 1 / 2, 10000 * 2/3
+        num_gain_days, num_loss_days = gain_end - gain_start, loss_end - loss_start
+        gain_per_day = max_gain / num_gain_days
+        loss_per_day = max_loss / num_loss_days
 
-        # remaining gain time (rem_gain = rem gain per contract)
-        rem_gain_time = min(abs(cycle_time - 1 / 2), max_gain_duration)
-        rem_gain = max_gain * (rem_gain_time / max_gain_duration)
+        def get_custom_opp_cost():
+            # remaining gain time (rem_gain = rem gain per contract)
 
-        # # if we have position i, we are missing out on (limit - i) profits
-        # custom_opp_cost = {
-        #     i : -1 * (limit - i) * rem_gain
-        #     for i in range(-limit, limit + 1)
-        # }
+            cur_day = cycle_time * 10000
+
+
+            opp_costs = {i: 0 for i in range(-limit, limit + 1)}
+
+            def modify_opp_cost(prd_start, prd_end, earn_per_day):
+                if cur_day >= prd_end:
+                    return
+
+                trade_rate = np.sign(earn_per_day) * base_trade_rate
+                target_pos = np.sign(earn_per_day) * limit                
+
+                days_until_gain = max(prd_start - cur_day, 0)
+                best_pos_change = days_until_gain * trade_rate
+
+                rem_gain_days = prd_end - max(prd_start, cur_day)
+
+                for start_pos in range(-limit, limit + 1):
+                    exp_pos = max(min(start_pos + best_pos_change, limit), -1 * limit)
+                    exp_pos_miss = target_pos - exp_pos
+
+                    # changing days are # of days during gain period, where we increase our pos
+                    num_change_days = min(rem_gain_days, exp_pos_miss / trade_rate)                    
+                    avg_pos = exp_pos + num_change_days / 2 * trade_rate
+
+                    # number of days we are at the target pos
+                    max_pos_day = cur_day + days_until_gain + num_change_days
+                    num_max_days = prd_end - max_pos_day
+
+                    # final value
+                    opp_costs[start_pos] += earn_per_day * (num_max_days * target_pos + num_change_days * avg_pos)
+
+                    if abs(start_pos) == limit:
+                        print(f"start_pos {start_pos}:", opp_costs[start_pos])
+                        print("ex_pos", exp_pos, exp_pos_miss)
+                        print("num_chg_days", num_change_days, avg_pos)
+                        print("maxed_days", max_pos_day, num_max_days)
+
+            modify_opp_cost(
+                prd_start=gain_start,
+                prd_end=gain_end,
+                earn_per_day=gain_per_day,
+            )
+
+            if cur_day >= gain_end:
+                modify_opp_cost(
+                    prd_start=loss_start,
+                    prd_end=loss_end,
+                    earn_per_day=loss_per_day,
+                )
+
+            opp_costs = {k: round(v, 1) for k, v in opp_costs.items()}
+
+            print("__custom", json.dumps(opp_costs), "__end")
+
+            return opp_costs
+            
+        # dict
+        base_opp_cost = REF_OPP_COSTS[sym]
+        custom_opp_cost = get_custom_opp_cost()
+        used_opp_cost = {i: base_opp_cost[i] + custom_opp_cost[i] for i in range(-limit, limit + 1)}
 
         # if cycle_time < 1 / 4:
-        #     used_opp_cost = REF_OPP_COSTS
+        #     used_opp_cost = REF_OPP_COSTS[sym]
+        # elif cycle_time < 1 / 3:
+        #     used_opp_cost = custom_opp_cost
         # elif cycle_time < 1 / 2:
         #     used_opp_cost = custom_opp_cost
-        # elif cycle_time < 3 / 4:
+        # elif cycle_time < 2 / 3: # ok here
         #     used_opp_cost = {k: -1 * v for k, v in custom_opp_cost.items()}
         # elif cycle_time < 1:
-        #     used_opp_cost = REF_OPP_COSTS
+        #     used_opp_cost = REF_OPP_COSTS[sym]
 
+        # print("used_opp_cost", used_opp_cost)
 
 
         def trade_standard():
@@ -1020,35 +1095,36 @@ class Trader:
                 state=state,
                 sym=sym,
                 fair_value=fair_value,
+                custom_opp_cost=used_opp_cost,
             )
             self.make_logic(
                 state=state,
                 sym=sym,
                 fair_value=fair_value,
-                # custom_opp_cost=custom_opp_cost,
+                custom_opp_cost=used_opp_cost,
             )
 
-        # trade_standard()        
+        trade_standard()        
 
-        # before a third of the day
-        if cycle_time < 0.3: 
-            # market make?
-            trade_standard()
+        # # before a third of the day
+        # if cycle_time < 0.3: 
+        #     # market make?
+        #     trade_standard()
 
-        elif cycle_time < 0.5:
-            # reset position
-            self.take_to_target_pos(state, sym, target_pos=+1 * max_position_limit)
+        # elif cycle_time < 0.5:
+        #     # reset position
+        #     self.take_to_target_pos(state, sym, target_pos=+1 * max_position_limit)
 
-        elif cycle_time < 0.75:
-            self.take_to_target_pos(state, sym, target_pos=-1 * max_position_limit)
+        # elif cycle_time < 0.75:
+        #     self.take_to_target_pos(state, sym, target_pos=-1 * max_position_limit)
 
-        elif cycle_time < 0.8:
-            # reset position
-            self.take_to_target_pos(state, sym, target_pos=0)
+        # elif cycle_time < 0.8:
+        #     # reset position
+        #     self.take_to_target_pos(state, sym, target_pos=0)
 
-        elif cycle_time < 1:
-            # market make?
-            trade_standard()
+        # elif cycle_time < 1:
+        #     # market make?
+        #     trade_standard()
 
     def take_to_target_pos(self, state: TradingState, sym: Symbol, target_pos: int):
 
@@ -1075,7 +1151,7 @@ class Trader:
             state: TradingState,
             sym: Symbol, 
             fair_value: float,
-            custom_opp_cost=None,
+            custom_opp_cost: Dict[Position, float]=None,
             ):
         
         buys, sells = self.all_buys[sym], self.all_sells[sym]
@@ -1406,6 +1482,7 @@ class DataManager:
 
         # add obj to history
         obj = {
+            "time": state.timestamp,
             "best_buy": best_buy,
             "best_sell": best_sell,
             "mid": mid,
@@ -1426,7 +1503,8 @@ class DataManager:
         mid = state.observations[obs_name]
 
         obj = {
-            "mid": mid
+            "time": state.timestamp,
+            "mid": mid,
         }
 
         obs_history += [obj]
