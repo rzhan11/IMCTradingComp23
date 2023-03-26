@@ -27,7 +27,7 @@ MAX_POS = {
 
 PARAMS = {
     # game parameters
-    "max_timestamp": 100000,
+    "max_timestamp": 1000000,
     "time_step": 100,
 
     # auto-close 
@@ -49,7 +49,7 @@ PARAMS = {
         "BANANAS": True,
         "COCONUTS": False,
         "PINA_COLADAS": False,
-        "BERRIES": True,
+        "BERRIES": False,
         "DIVING_GEAR": True,
     },
 
@@ -58,7 +58,7 @@ PARAMS = {
         "BANANAS": True,
         "COCONUTS": False,
         "PINA_COLADAS": False,
-        "BERRIES": True,
+        "BERRIES": False,
         "DIVING_GEAR": True,
     },
 
@@ -266,10 +266,8 @@ class Trader:
         # print round header
         self.turn += 1
 
-        print("-"*50)
-        print(f"Round {state.timestamp}, {self.turn}")
-        print("-"*50)
-
+        print("-"*5)
+        print(f"ROUND {state.timestamp}, {self.turn}")
 
 
         # print raw json, for analysis
@@ -301,7 +299,7 @@ class Trader:
         """ Called by game engine, returns dict of buy/sell orders
         """
 
-        _print("_"*100)
+        # _print("_"*100)
 
         state_json = json.loads(state.toJSON())
 
@@ -316,9 +314,33 @@ class Trader:
 
         # cleanup / info reporting section
         orders = self.turn_end(state)
-        logger.flush(state_json, orders)
+        # logger.flush(state_json, orders)
 
-    
+        # validate orders
+        for sym, ods in orders.items():
+            # print(sym, state.position[sym], ods)
+            max_buy = -np.inf
+            min_sell = np.inf
+            total_buy_size = 0
+
+            for ord in ods:
+                if ord.quantity > 0:
+                    max_buy = max(ord.price, max_buy)
+                elif ord.quantity < 0:
+                    min_sell = min(ord.price, min_sell)
+                else:
+                    print("WARNING: ORDER SIZE 0", ord)
+
+            if max_buy >= min_sell:
+                print("WARNING: SELF TRADE")
+
+            if self.OM.get_rem_buy_size(state, sym) < 0:
+                print("WARNING: BUY LIMIT")
+
+            if self.OM.get_rem_sell_size(state, sym) < 0:
+                print("WARNING: SELL LIMIT")
+
+
         return orders
 
 
@@ -397,7 +419,7 @@ class Trader:
                 )
             
             # macd logic
-            # if sym in ["COCONUTS", "PINA_COLADAS"]:
+            # if sym in ["DIVING_GEAR"]:
             #     self.macd_logic(
             #         state=state,
             #         sym=sym,
@@ -603,20 +625,21 @@ class Trader:
                     trade_size_a = int(round(contract_size))
                     trade_size_b = int(round(contract_size * model_m))
 
-                    # sell A
-                    OM.place_sell_order(
-                        symbol=sym_a,
-                        price=price_a,
-                        quantity=trade_size_a,
-                        is_take=True,
-                    )
-                    # buy B
-                    OM.place_buy_order(
-                        symbol=sym_b,
-                        price=price_b,
-                        quantity=trade_size_b,
-                        is_take=True,
-                    )
+                    if trade_size_a > 0 and trade_size_b > 0:
+                        # sell A
+                        OM.place_sell_order(
+                            symbol=sym_a,
+                            price=price_a,
+                            quantity=trade_size_a,
+                            is_take=True,
+                        )
+                        # buy B
+                        OM.place_buy_order(
+                            symbol=sym_b,
+                            price=price_b,
+                            quantity=trade_size_b,
+                            is_take=True,
+                        )
 
                     
         def buy_a_sell_b():
@@ -670,21 +693,22 @@ class Trader:
                     # we trade 'contract_size' of A and 'contract_size * model_m' of B 
                     trade_size_a = int(round(contract_size))
                     trade_size_b = int(round(contract_size * model_m))
-                    
-                    # sell A
-                    OM.place_buy_order(
-                        symbol=sym_a,
-                        price=price_a,
-                        quantity=trade_size_a,
-                        is_take=True,
-                    )
-                    # buy B
-                    OM.place_sell_order(
-                        symbol=sym_b,
-                        price=price_b,
-                        quantity=trade_size_b,
-                        is_take=True,
-                    )
+
+                    if trade_size_a > 0 and trade_size_b > 0:
+                        # sell A
+                        OM.place_buy_order(
+                            symbol=sym_a,
+                            price=price_a,
+                            quantity=trade_size_a,
+                            is_take=True,
+                        )
+                        # buy B
+                        OM.place_sell_order(
+                            symbol=sym_b,
+                            price=price_b,
+                            quantity=trade_size_b,
+                            is_take=True,
+                        )
 
 
         def hedge():
@@ -698,21 +722,21 @@ class Trader:
             cur_contract_pos, diff_A, diff_B = get_cur_contract_pos()
             trade_size_A, trade_size_B = abs(diff_A), abs(diff_B)
 
-            print("\nHEDGE")
-            print("cur_pos", OM.get_expected_pos(state, prod_a), OM.get_expected_pos(state, prod_b))
-            print(cur_contract_pos, diff_A, diff_B, trade_size_A, trade_size_B)
+            # print("\nHEDGE")
+            # print("cur_pos", OM.get_expected_pos(state, prod_a), OM.get_expected_pos(state, prod_b))
+            # print(cur_contract_pos, diff_A, diff_B, trade_size_A, trade_size_B)
 
             # hedge A
             if abs(diff_A) > hedge_margin:
                 if diff_A > 0: # we are too long, need to sell
-                    print("hedging sell A")
+                    # print("hedging sell A")
                     self.place_take_best_sell(
                         state=state,
                         sym=sym_a,
                         max_quantity=trade_size_A,
                     )
                 else: # we are too short, need to buy
-                    print("hedging buy A")
+                    # print("hedging buy A")
                     self.place_take_best_buy(
                         state=state,
                         sym=sym_a,
@@ -722,14 +746,14 @@ class Trader:
             # hedge B
             if abs(diff_B) > hedge_margin * model_m:
                 if diff_B > 0: # we are too long, need to sell
-                    print("hedging sell B")
+                    # print("hedging sell B")
                     self.place_take_best_sell(
                         state=state,
                         sym=sym_b,
                         max_quantity=trade_size_B,
                     )
                 else: # we are too short, need to buy
-                    print("hedging buy B")
+                    # print("hedging buy B")
                     self.place_take_best_buy(
                         state=state,
                         sym=sym_b,
@@ -763,7 +787,6 @@ class Trader:
         # print(mid_price, margin, macd, self.macd_pos)
 
         if macd > 0 + margin:
-        # if macd > 0 + margin and self.macd_pos <= 0:
             limit = OM.get_rem_buy_size(state, sym)
             price, quantity = sells[0]
 
@@ -773,7 +796,6 @@ class Trader:
                 quantity=min(quantity, limit),
                 is_take=True,
             )
-            # self.macd_pos = 1
 
         if macd < 0 - margin:
         # if macd < 0 - margin and self.macd_pos >= 0:
@@ -786,7 +808,6 @@ class Trader:
                 quantity=min(quantity, limit),
                 is_take=True,
             )
-            # self.macd_pos = -1
 
 
     def take_logic(self, 
@@ -924,7 +945,7 @@ class Trader:
             # get the size with the optimal expected adjusted return
             if len(scores) > 0:
                 adj_rtn, buy_size = max(scores)
-                if adj_rtn >= 0 and buy_size > 0:
+                if adj_rtn > 0 and buy_size > 0:
                     OM.place_buy_order(
                         symbol=sym,
                         price=price,
@@ -957,7 +978,7 @@ class Trader:
             # get the size with the optimal expected adjusted return
             if len(scores) > 0:
                 adj_rtn, sell_size = max(scores)
-                if adj_rtn >= 0 and sell_size > 0:
+                if adj_rtn > 0 and sell_size > 0:
                     OM.place_sell_order(
                         symbol=sym,
                         price=price,
@@ -965,52 +986,6 @@ class Trader:
                         is_take=False,
                     )
         
-
-
-        # # match orders on buy-side
-        # for price, quantity in buys:
-        #     if should_penny:
-        #         price += 1
-
-        #     # don't carp if buy price is higher than EMA
-        #     if price > fair_value:
-        #         continue
-
-        #     limit = OM.get_rem_buy_size(state, sym)
-        #     if limit > 0:
-        #         if self.match_size:
-        #             order_quantity = min(limit, quantity)
-        #         else:
-        #             order_quantity = limit
-
-        #         OM.place_buy_order(
-        #             symbol=sym,
-        #             price=price,
-        #             quantity=order_quantity,
-        #         )
-
-        # # match orders on sell-side
-        # for price, quantity in sells:
-        #     if should_penny:
-        #         price -= 1
-
-        #     # don't carp if sell price is higher than EMA
-        #     if price < fair_value:
-        #         continue
-
-        #     limit = OM.get_rem_sell_size(state, sym)
-        #     if limit > 0:
-        #         if self.match_size:
-        #             order_quantity = min(limit, quantity)
-        #         else:
-        #             order_quantity = limit
-
-        #         OM.place_sell_order(
-        #             symbol=sym,
-        #             price=price,
-        #             quantity=order_quantity,
-        #         )
-
 
 
 
@@ -1067,10 +1042,16 @@ class Trader:
 
         s = state.toJSON()
 
-        print("_"*100)
-        print(f"__game_state_start\n{s}\n__game_state_end\n")
-
+        # print("_"*25)
         
+        print(f"__g_s{s}__g_e")
+
+        # print("__g_s")
+        # num_iters = int(np.ceil(len(s) / 100))
+        # for i in range(num_iters):
+        #     print(s[i*100:(i+1)*100])
+        # print("__g_e")
+
 
     def record_turn_end(self, state: TradingState):
         """ Prints out end of turn info, including:
@@ -1095,22 +1076,22 @@ class Trader:
         obj = {
             # timing
             "time": state.timestamp,
-            "wall_time": time.time() - self.wall_start_time,
-            "process_time": time.process_time() - self.process_start_time,
+            "wall_time": round(time.time() - self.wall_start_time, 2),
+            "process_time": round(time.process_time() - self.process_start_time, 2),
 
             # my orders
             "my_orders": my_orders,
 
             ### fair values ###
 
-            # ema
-            "emas": emas,
-            "best_emas": best_emas,
-            "best_ema_spans": best_ema_spans,
+            # # ema
+            # "emas": emas,
+            # "best_emas": best_emas,
+            # "best_ema_spans": best_ema_spans,
 
-            # large quote mid
-            "quote_mids": quote_mids,
-            "use_quote_mids": use_quote_mids,
+            # # large quote mid
+            # "quote_mids": quote_mids,
+            # "use_quote_mids": use_quote_mids,
 
             # fair value
             "fair_values": fair_values,
@@ -1124,8 +1105,7 @@ class Trader:
         # convert obj to 
         s = json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True)
 
-        print("_"*100)
-        print(f"__turn_end_start\n{s}\n__turn_end_end")
+        print(f"__t_s\n{s}\n__t_e")
 
 
 
@@ -1278,6 +1258,10 @@ class OrderManager:
 
         If this order is a taking order, then it should update our expected position
         """
+        
+        if type(price) != int or type(quantity) != int:
+            print("WARNING: BUY BAD ORDER TYPE", type(price), type(quantity))
+
         self._buy_orders[symbol] += [Order(symbol, price, quantity)]
         
         if is_take:
@@ -1286,6 +1270,10 @@ class OrderManager:
     def place_sell_order(self, symbol: Symbol, price: Price, quantity: int, is_take: bool):
         """ Queues a sell order
         """
+        
+        if type(price) != int or type(quantity) != int:
+            print("WARNING: SELL BAD ORDER TYPE", type(price), type(quantity))
+
         self._sell_orders[symbol] += [Order(symbol, price, quantity)]
 
         if is_take:

@@ -3,7 +3,7 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 3000000
+MAX_TIME = 100000
 TIME_STEP = 100
 
 # _day_range = [1]
