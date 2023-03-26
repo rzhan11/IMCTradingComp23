@@ -15,22 +15,8 @@ class Fair:
 
         self.products = products
 
-        self.value = {
-            "BANANAS": 5000,
-            "PEARLS": 10000,
-            "COCONUTS": 8000,
-            "PINA_COLADAS": 15000,
-            "BERRIES": 4000,
-            "DIVING_GEAR": 100000,
-            "SEASHELLS": 1,
-        }
-
-        self.vols = {
-            "BANANAS": 0.31 / 100, # 0.31% every 100 turns -> 1% every 1000 turns
-            "PEARLS": 0,
-            "PINA_COLADAS": 3 / 100,
-            "COCONUTS": 1.5 / 100,
-        }
+        self.value = { prod: -1 for prod in products }
+        self.value["SEASHELLS"] = 1
 
         # pre-calculate fairs
         self.price_df = price_df
@@ -58,13 +44,14 @@ class Fair:
     def update_mid_price(self, timestamp, prod):
         self.value[prod] = self.all_fairs[prod][timestamp]
 
-    def update_lognormal(self, prod):
-        value = self.value[prod]
-        vol = self.vols[prod]
 
-        change = np.random.lognormal(
-            mean=0, 
-            sigma=vol * 1 / np.sqrt(self.vol_turns)
-        )
+    # def update_lognormal(self, prod):
+    #     value = self.value[prod]
+    #     vol = self.vols[prod]
 
-        self.value[prod] = value * change
+    #     change = np.random.lognormal(
+    #         mean=0, 
+    #         sigma=vol * 1 / np.sqrt(self.vol_turns)
+    #     )
+
+    #     self.value[prod] = value * change

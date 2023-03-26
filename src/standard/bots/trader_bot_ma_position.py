@@ -24,6 +24,10 @@ MAX_POS = {
     "PINA_COLADAS": 300,
     "BERRIES": 250,
     "DIVING_GEAR": 50,
+    "BAGUETTE": 150,
+    "DIP": 300,
+    "UKULELE": 70,
+    "PICNIC_BASKET": 70,
 }
 
 PARAMS = {
@@ -43,6 +47,11 @@ PARAMS = {
         "PINA_COLADAS": True,
         "BERRIES": True,
         "DIVING_GEAR": True,
+        # round 4
+        "BAGUETTE": True,
+        "DIP": True,
+        "UKULELE": True,
+        "PICNIC_BASKET": True,
     },
 
     "take_flag": {
@@ -52,6 +61,11 @@ PARAMS = {
         "PINA_COLADAS": False,
         "BERRIES": False,
         "DIVING_GEAR": False,
+        # round 4
+        "BAGUETTE": True,
+        "DIP": True,
+        "UKULELE": True,
+        "PICNIC_BASKET": True,
     },
 
     "make_flag": {
@@ -61,6 +75,11 @@ PARAMS = {
         "PINA_COLADAS": False,
         "BERRIES": False,
         "DIVING_GEAR": False,
+        # round 4
+        "BAGUETTE": True,
+        "DIP": True,
+        "UKULELE": True,
+        "PICNIC_BASKET": True,
     },
 
     "pairs_model_weights": [1.5, 3000],
@@ -78,45 +97,57 @@ PARAMS = {
     # how many days to test EMA against true
     "DM.ema_test_days": 100,
 
-    "DM.ema_spans": [21, 100],
+    "DM.ema_spans": [5, 21, 100],
     # "DM.ema_spans": [3, 10, 21, 100],
     # "DM.ema_spans": [3, 5, 10, 21, 30, 50, 100],
 }
 
-WHALE_QUOTE_BOUNDS = {
-    "BANANAS": {
-        "spread": (6, 11), # (6, 7)
-        "size": (13, 40), # (20, 40)
-    },
-    "PEARLS": {
-        "spread": (6, 11), # (10, 10)
-        "size": (15, 35), # (20, 30)
-    },
-    # "COCONUTS": {
-    #     "spread": (6, 11), # (6, 7)
-    #     "size": (15, 35), # (20, 35)
-    # },
-    # "PINA_COLADAS": {
-    #     "spread": (6, 11), # (10, 10)
-    #     "size": (15, 35), # (20, 30)
-    # },
-    "COCONUTS": {
-        "spread": (2, 4), # (3, 3)
-        "size": (80, 300), # (100, 250)
-    },
-    "PINA_COLADAS": {
-        "spread": (2, 5), # (3, 4)
-        "size": (40, 150), # (50, 120)
-    },
-    'DIVING_GEAR':{
-        "spread": (2,5), # (3, 4)
-        "size": (8, 40), # (10, 30)
-    },
-    'BERRIES':{
-        "spread": (7, 10), # (8, 9)
-        "size": (35, 100), # (40, 80)
-    }
-}
+# WHALE_QUOTE_BOUNDS = {
+#     # round 1
+#     "BANANAS": {
+#         "spread": (6, 11), # (6, 7)
+#         "size": (13, 40), # (20, 40)
+#     },
+#     "PEARLS": {
+#         "spread": (6, 11), # (10, 10)
+#         "size": (15, 35), # (20, 30)
+#     },
+#     # round 2
+#     "COCONUTS": {
+#         "spread": (2, 4), # (3, 3)
+#         "size": (80, 300), # (100, 250)
+#     },
+#     "PINA_COLADAS": {
+#         "spread": (2, 5), # (3, 4)
+#         "size": (40, 150), # (50, 120)
+#     },
+#     # round 3
+#     'DIVING_GEAR':{
+#         "spread": (2,5), # (3, 4)
+#         "size": (8, 40), # (10, 30)
+#     },
+#     'BERRIES':{
+#         "spread": (7, 10), # (8, 9)
+#         "size": (35, 100), # (40, 80)
+#     },
+#     # round 4
+#     "BAGUETTE": {
+#         "spread": (0, 100), # (8, 9)
+#         "size": (0, 150), # (40, 80)
+#     },
+#     "DIP": {
+#         "spread": (0, 100), # (8, 9)
+#         "size": (0, 100), # (40, 80)
+#     },
+#     'UKULELE':{
+#         "spread": (0, 100), # (8, 9)
+#         "size": (0, 100), # (40, 80)
+#     },
+#     'PICNIC_BASKET':{
+#         "spread": (0, 100), # (8, 9)
+#         "size": (0, 100), # (40, 80)
+#     },
+# }
 
 
 REF_OPP_COSTS = {
@@ -131,12 +162,17 @@ REF_OPP_COSTS = {
 
 def init_ref_opp_costs():
     global REF_OPP_COSTS
+    default_syms = [
+        "PINA_COLADAS", "COCONUTS", # round 2
+        "DIVING_GEAR", # round 3 
+        "BAGUETTE", "DIP", "UKULELE", "PICNIC_BASKET", # round 4
+    ]
 
-    for sym in ["PINA_COLADAS", "COCONUTS", "DIVING_GEAR"]:
+    for sym in default_syms:
         assert sym not in REF_OPP_COSTS
 
         limit = MAX_POS[sym]
-        REF_OPP_COSTS[sym] = {i: -1 * abs(i) / limit for i in range(-limit, limit + 1)}
+        REF_OPP_COSTS[sym] = {i: round(-1 * abs(i) / limit, 3) for i in range(-limit, limit + 1)}
 
 init_ref_opp_costs()
 
@@ -151,7 +187,7 @@ def _get_desc():
     {json.dumps(PARAMS, indent=2)}
 
     WHALE_QUOTE_BOUNDS:
-    {json.dumps(WHALE_QUOTE_BOUNDS, indent=2)}
+    {json.dumps("n/a", indent=2)}
 
     REF_OPP_COSTS:
     {REF_OPP_COSTS}
@@ -278,6 +314,10 @@ class Trader:
 
         print("-"*5)
         print(f"ROUND {state.timestamp}, {self.turn}")
+
+        # used by self.reduce
+        self.__reduce_symbols = list(state.order_depths.keys())
+        print("od key", state.order_depths.keys())
 
 
         # print raw json, for analysis
@@ -1258,9 +1298,6 @@ class Trader:
         - If yes, return prices of max size buy/sell from order book, else return None
         """
 
-        quote_bounds = WHALE_QUOTE_BOUNDS[sym]
-        spread_lb, spread_ub = quote_bounds["spread"]
-        size_lb, size_ub = quote_bounds["size"]
 
 
         buys, sells = self.orig_all_buys[sym], self.orig_all_sells[sym]
@@ -1270,11 +1307,16 @@ class Trader:
 
         spread = sell_price - buy_price
         
-        should_use = \
-            spread_lb <= spread <= spread_ub and \
-            size_lb <= buy_size <= size_ub and \
-            size_lb <= sell_size <= size_ub
-        
+        # quote_bounds = WHALE_QUOTE_BOUNDS[sym]
+        # spread_lb, spread_ub = quote_bounds["spread"]
+        # size_lb, size_ub = quote_bounds["size"]
+        # should_use = \
+        #     spread_lb <= spread <= spread_ub and \
+        #     size_lb <= buy_size <= size_ub and \
+        #     size_lb <= sell_size <= size_ub
+        ### always use whale quote bounds
+        should_use = True
+
         return (buy_price + sell_price) / 2, should_use
 
 
@@ -1302,8 +1344,7 @@ class Trader:
         state.finish_turn = self.finish_turn
 
         s = state.toJSON()
-
-        # print("_"*25)
+        s = self.reduce_str(s)
         
         print(f"__g_s{s}__g_e")
 
@@ -1365,9 +1406,33 @@ class Trader:
         
         # convert obj to 
         s = json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True)
+        s = self.reduce_str(s)
 
         print(f"__t_s\n{s}\n__t_e")
 
+
+
+    def reduce_str(self, s):
+        unused_chars = "!@$^?~`" # add "%" if needed
+        def get_unused_char(i):
+            x = i // 10
+            y = i % 10
+            return unused_chars[x] + str(y)
+
+        words = self.__reduce_symbols + [
+            "buy_orders", "sell_orders", 
+            "price", "quantity", 
+            "symbol", "product", "denomination",
+        ]
+        words.sort(key=lambda x:(len(x), x), reverse=True)
+
+        convert_list = [ (sym, get_unused_char(i)) for i, sym in enumerate(words) ]
+        print("convert", convert_list)
+        
+        for k, v in convert_list:
+            s = s.replace(k, v)
+
+        return s
 
 
 class DataManager:

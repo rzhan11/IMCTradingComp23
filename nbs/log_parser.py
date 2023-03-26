@@ -9,6 +9,8 @@ def process_file(fname, start_sep, end_sep):
     print("Reading from input file", input_file)
     with open(input_file, "r") as f:
         text = f.read()
+    
+    text = unreduce_str(text)
 
     # split on start_sep
     splits = text.split(start_sep)
@@ -65,3 +67,28 @@ def process_file_jasper(fname, start_sep, end_sep):
 
     return splits
 
+
+
+symbols = ["BANANAS", "PEARLS", "COCONUTS", "PINA_COLADAS", "BERRIES", "DIVING_GEAR", "BAGUETTE", "DIP", "UKULELE", "PICNIC_BASKET"]
+
+def unreduce_str(s):
+    unused_chars = "!@$^?~`" # add "%" if needed
+    def get_unused_char(i):
+        x = i // 10
+        y = i % 10
+        return unused_chars[x] + str(y)
+
+    words = symbols + [
+        "buy_orders", "sell_orders", 
+        "price", "quantity", 
+        "symbol", "product", "denomination",
+    ]
+    words.sort(key=lambda x:(len(x), x), reverse=True)
+
+    convert_list = [ (sym, get_unused_char(i)) for i, sym in enumerate(words) ]
+    print("convert", convert_list)
+    
+    for k, v in convert_list:
+        s = s.replace(v, k)
+
+    return s

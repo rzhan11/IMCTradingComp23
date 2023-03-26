@@ -85,7 +85,9 @@ class MakerBot:
         for sym in self.symbols:
 
             # grab first row
-            time_state = cur_df[cur_df["symbol"] == sym].iloc[0]
+            time_state = cur_df[cur_df["symbol"] == sym]
+            assert(len(time_state) == 1)
+            time_state = time_state.iloc[0]
 
             for num in range(1, 4):
                 

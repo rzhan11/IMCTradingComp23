@@ -3,7 +3,7 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 3000000
+MAX_TIME = 200000
 TIME_STEP = 100
 
 # _day_range = [1]
@@ -21,55 +21,20 @@ trader_position_limits : Dict[Product, int] = {
     "PINA_COLADAS": 300,
     "BERRIES": 250,
     "DIVING_GEAR": 50,
-    "SEASHELLS": float("inf")
+    "SEASHELLS": float("inf"),
+    "BAGUETTE": 150,
+    "DIP": 300,
+    "UKULELE": 70,
+    "PICNIC_BASKET": 70,
 }
 
 market_position_limits = { k: float("inf") for k in trader_position_limits.keys() }
 
 LISTINGS : Dict[Symbol, Listing] = {
-    "BANANAS": Listing(
-        symbol = "BANANAS",
-        product = "BANANAS",
-        denomination = 1,
-    ),
-    "PEARLS": Listing(
-        symbol = "PEARLS",
-        product = "PEARLS",
-        denomination = 1,
-    ),
-    "COCONUTS": Listing(
-        symbol = "COCONUTS",
-        product = "COCONUTS",
-        denomination = 1,
-    ),
-    "PINA_COLADAS": Listing(
-        symbol = "PINA_COLADAS",
-        product = "PINA_COLADAS",
-        denomination = 1,
-    ),
-    "BERRIES": Listing(
-        symbol = "BERRIES",
-        product = "BERRIES",
-        denomination = 1,
-    ),
-    "DIVING_GEAR": Listing(
-        symbol = "DIVING_GEAR",
-        product = "DIVING_GEAR",
-        denomination = 1,
-    ),
+    prod: Listing(symbol=prod, product=prod, denomination=1)
+    for prod in trader_position_limits.keys()
 }
-# LISTINGS : Dict[Symbol, Dict] = {
-#     "BANANAS": {
-#         "symbol": "BANANAS",
-#         "product": "BANANAS",
-#         "denomination": 1,
-#     },
-#     "PEARLS": {
-#         "symbol": "PEARLS",
-#         "product": "PEARLS",
-#         "denomination": 1,
-#     },
-# }
+del LISTINGS["SEASHELLS"]
 
 PRODUCTS = list(trader_position_limits.keys())
 SYMBOLS = list(LISTINGS.keys())
