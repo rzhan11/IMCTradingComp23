@@ -17,7 +17,6 @@ def main(package: str):
     # init world state
     GS = importlib.import_module(".game_settings", package=package)
 
-
     empty_book: Dict[Symbol, OrderDepth] = {
         sym: OrderDepth() for sym in GS.SYMBOLS
     }
@@ -51,6 +50,9 @@ def main(package: str):
 
         state.update_fairs(turn=cur_turn)
 
+        # update observations
+        state.observations = GS.OBSERVATIONS[cur_time]
+
         # every player does their actions
         for player in GS.PLAYERS:
 
@@ -62,14 +64,14 @@ def main(package: str):
             # make copy of state for player's use
             state_player_copy = state.get_player_copy(pid=pid)
 
-            eprint("Books:")
-            for sym, book in state._TradingState__books.items():
-                eprint("BIDS")
-                for b in book.buys:
-                    eprint(b)
-                eprint("ASKS")
-                for b in book.sells:
-                    eprint(b)
+            # eprint("Books:")
+            # for sym, book in state._TradingState__books.items():
+            #     eprint("BIDS")
+            #     for b in book.buys:
+            #         eprint(b)
+            #     eprint("ASKS")
+            #     for b in book.sells:
+            #         eprint(b)
 
             # run trader actions
 

@@ -3,7 +3,7 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 100000
+MAX_TIME = 3000000
 TIME_STEP = 100
 
 # _day_range = [1]
@@ -127,6 +127,14 @@ price_df["time"] = price_df["time"] + (price_df["day"] - min(_day_range)) * _tim
 # rename "ask" to "sell"
 price_df = price_df.rename({col: col.replace("bid", "buy") for col in price_df.columns if "bid" in col}, axis=1)
 price_df = price_df.rename({col: col.replace("ask", "sell") for col in price_df.columns if "ask" in col}, axis=1)
+
+
+
+## init observations
+obs_names = ["DOLPHIN_SIGHTINGS"]
+obs_df = price_df[price_df["symbol"].isin(obs_names)][["mid_price", "symbol", "time"]]
+obs_df = obs_df.pivot(index="time", columns="symbol")["mid_price"].astype(int)
+OBSERVATIONS = obs_df.T.to_dict()
 
 
 

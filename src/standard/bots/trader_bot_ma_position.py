@@ -49,8 +49,8 @@ PARAMS = {
         "BANANAS": True,
         "COCONUTS": False,
         "PINA_COLADAS": False,
-        "BERRIES": True,
-        "DIVING_GEAR": True,
+        "BERRIES": False,
+        "DIVING_GEAR": False,
     },
 
     "make_flag": {
@@ -58,8 +58,8 @@ PARAMS = {
         "BANANAS": True,
         "COCONUTS": False,
         "PINA_COLADAS": False,
-        "BERRIES": True,
-        "DIVING_GEAR": True,
+        "BERRIES": False,
+        "DIVING_GEAR": False,
     },
 
     "pairs_model_weights": [1.5, 3000],
@@ -258,6 +258,11 @@ class Trader:
         # self.macd_pos = 0
 
 
+        ## gear vars
+        self.has_gear_target = False
+        self.gear_target = 0
+
+
     def turn_start(self, state: TradingState):
         # measure time
         self.wall_start_time = time.time()
@@ -435,8 +440,13 @@ class Trader:
 
         self.take_gear_logic(
             state=state, 
-            sym_a="PINA_COLADAS", 
-            sym_b="COCONUTS", 
+            sym="DIVING_GEAR",
+            obs_name="DOLPHIN_SIGHTINGS",
+        )
+
+        self.take_berries_logic(
+            state=state,
+            sym="BERRIES",
         )
 
     def get_ema_mid(self, sym: Symbol) -> float:
@@ -479,10 +489,13 @@ class Trader:
         else:
             return None, None
 
-    def place_take_best_buy(self, state: TradingState, sym: Symbol, max_quantity: int):
+    def place_market_buy(self, state: TradingState, sym: Symbol, max_quantity: int):
+        price, quantity = self.get_best_sell_order(sym)
 
+        # we are buying
         limit = self.OM.get_rem_buy_size(state, sym)
-        price, quantity = self.get_best_buy_order(sym)
+        if limit <= 0:
+            return
 
         if price is not None:
             self.OM.place_buy_order(
@@ -492,10 +505,13 @@ class Trader:
                 is_take=True,
             )
 
-    def place_take_best_sell(self, state: TradingState, sym: Symbol, max_quantity: int):
+    def place_market_sell(self, state: TradingState, sym: Symbol, max_quantity: int):
+        price, quantity = self.get_best_buy_order(sym)
 
+        # we are selling
         limit = self.OM.get_rem_sell_size(state, sym)
-        price, quantity = self.get_best_sell_order(sym)
+        if limit <= 0:
+            return
 
         if price is not None:
             self.OM.place_sell_order(
@@ -568,7 +584,7 @@ class Trader:
 
                 # find the diffs between our contract size and A/B
                 diff_A = round(contract_size - cur_pos_A)
-                diff_B = round(contract_size * model_m - cur_pos_B)
+                diff_B = round(-1 * contract_size * model_m - cur_pos_B)
 
                 return int(contract_size), int(diff_A), int(diff_B)
 
@@ -728,22 +744,22 @@ class Trader:
             cur_contract_pos, diff_A, diff_B = get_cur_contract_pos()
             trade_size_A, trade_size_B = abs(diff_A), abs(diff_B)
 
-            # print("\nHEDGE")
-            # print("cur_pos", OM.get_expected_pos(state, prod_a), OM.get_expected_pos(state, prod_b))
-            # print(cur_contract_pos, diff_A, diff_B, trade_size_A, trade_size_B)
+            print("\nHEDGE")
+            print("cur_pos", OM.get_expected_pos(state, prod_a), OM.get_expected_pos(state, prod_b))
+            print(cur_contract_pos, diff_A, diff_B, trade_size_A, trade_size_B)
 
             # hedge A
             if abs(diff_A) > hedge_margin:
-                if diff_A > 0: # we are too long, need to sell
-                    # print("hedging sell A")
-                    self.place_take_best_sell(
+                if diff_A > 0: # we need to buy
+                    print("hedging buy A")
+                    self.place_market_buy(
                         state=state,
                         sym=sym_a,
                         max_quantity=trade_size_A,
                     )
-                else: # we are too short, need to buy
-                    # print("hedging buy A")
-                    self.place_take_best_buy(
+                else: # we need to sell
+                    print("hedging sell A")
+                    self.place_market_sell(
                         state=state,
                         sym=sym_a,
                         max_quantity=trade_size_A,
@@ -751,16 +767,16 @@ class Trader:
 
             # hedge B
             if abs(diff_B) > hedge_margin * model_m:
-                if diff_B > 0: # we are too long, need to sell
-                    # print("hedging sell B")
-                    self.place_take_best_sell(
+                if diff_B > 0: # we need to buy
+                    print("hedging buy B")
+                    self.place_market_buy(
                         state=state,
                         sym=sym_b,
                         max_quantity=trade_size_B,
                     )
-                else: # we are too short, need to buy
-                    # print("hedging buy B")
-                    self.place_take_best_buy(
+                else: # we need to sell
+                    print("hedging sell B")
+                    self.place_market_sell(
                         state=state,
                         sym=sym_b,
                         max_quantity=trade_size_B,
@@ -784,36 +800,26 @@ class Trader:
         buys, sells = self.all_buys[sym], self.all_sells[sym]
         OM = self.OM
         prod = state.listings[sym].product
+
+        max_position = self._position_limits[prod]
         
         # get mid price, margin, and macd
         mid_price = self.DM.history[sym][-1]['mid']
         margin = mid_price * 0.005 / 10
         macd = self.DM.history[sym][-1]['macd']
 
-        # print(mid_price, margin, macd, self.macd_pos)
+        cur_pos = state.position[prod]
 
-        if macd > 0 + margin:
-            limit = OM.get_rem_buy_size(state, sym)
-            price, quantity = sells[0]
-
-            OM.place_buy_order(
-                symbol=sym,
-                price=price,
-                quantity=min(quantity, limit),
-                is_take=True,
-            )
-
-        if macd < 0 - margin:
-        # if macd < 0 - margin and self.macd_pos >= 0:
-            limit = OM.get_rem_sell_size(state, sym)
-            price, quantity = buys[0]
-
-            OM.place_sell_order(
-                symbol=sym,
-                price=price,
-                quantity=min(quantity, limit),
-                is_take=True,
-            )
+        if abs(macd) > margin:
+            if macd > 0:
+                self.take_to_target_pos(state=state, sym=sym, target_pos=+1 * max_position)
+            else:
+                self.take_to_target_pos(state=state, sym=sym, target_pos=-1 * max_position)
+        else:
+            # macd and cur_pos should be same sign
+            # if they are different signs, flatten our position
+            if np.sign(macd) != np.sign(cur_pos):
+                self.take_to_target_pos(state=state, sym=sym, target_pos=0)
 
 
     def take_logic(self, 
@@ -903,6 +909,121 @@ class Trader:
         # remove extraneous sells
         self.all_sells[sym] = [(p, q) for p, q in sells if q != 0]
 
+
+    def take_gear_logic(self,
+            state: TradingState,
+            sym: Symbol,
+            obs_name: str,
+            ):
+        
+        """ start of var setup """
+    
+        buys, sells = self.all_buys[sym], self.all_sells[sym]
+        OM = self.OM
+        prod = state.listings[sym].product
+
+        sym_history = self.DM.history[sym]
+        obs_history = self.DM.history[obs_name]
+
+        max_position_limit = self._position_limits[sym]
+        """ end of var setup """
+
+        # if we don't have a gear target, don't try to change our position
+        if not self.has_gear_target:
+            self.gear_target = state.position[sym]
+
+        print("gear_logic", len(sym_history), len(obs_history))
+
+        ## skip if no history
+        min_history_len = 10
+        if len(sym_history) < min_history_len or len(obs_history) < min_history_len:
+            return
+        
+        
+        # get historical dol levels
+        cur_dol = obs_history[-1]["mid"]
+        past_dol = obs_history[-2]["mid"]
+
+        dol_change = cur_dol - past_dol
+        print("dols", cur_dol, past_dol, dol_change)
+
+        # if theres been at least 2 dol change in either direction, trade that direction
+        if abs(dol_change) > 1:
+            signal = np.sign(dol_change)
+
+            self.has_gear_target = True
+            self.gear_target = signal * max_position_limit
+            print("BIG DOL CHANGE", dol_change, cur_dol, past_dol, self.gear_target)
+
+        print("gear target", self.gear_target)
+        self.take_to_target_pos(state, sym, target_pos=self.gear_target)
+
+
+    def take_berries_logic(self,
+            state: TradingState,
+            sym: Symbol,
+            ):
+        
+        """ start of var setup """
+    
+        buys, sells = self.all_buys[sym], self.all_sells[sym]
+        OM = self.OM
+        prod = state.listings[sym].product
+
+        sym_history = self.DM.history[sym]
+
+        max_position_limit = self._position_limits[sym]
+        """ end of var setup """
+
+        cycle_time = (state.timestamp % 1000000) / 1000000
+        
+
+        print("cycle_time", cycle_time)
+        
+
+        # before a third of the day
+        if cycle_time < 0.25: 
+            # market make?
+            self.make_logic(
+                state=state,
+                sym=sym,
+                fair_value=self.get_fair_value(sym),
+            )
+            pass
+        elif cycle_time < 0.5:
+            # reset position
+            self.take_to_target_pos(state, sym, target_pos=+1 * max_position_limit)
+
+        elif cycle_time < 0.75:
+            self.take_to_target_pos(state, sym, target_pos=-1 * max_position_limit)
+
+        elif cycle_time < 0.8:
+            # reset position
+            self.take_to_target_pos(state, sym, target_pos=0)
+
+        elif cycle_time < 1:
+            # market make?
+            pass            
+
+    def take_to_target_pos(self, state: TradingState, sym: Symbol, target_pos: int):
+
+        # target pos
+        cur_pos = state.position[sym]
+        pos_diff = target_pos - cur_pos
+        trade_size = abs(pos_diff)
+
+        if pos_diff > 0:
+            self.place_market_buy(
+                state=state, 
+                sym=sym, 
+                max_quantity=trade_size
+            )
+        elif pos_diff < 0:
+            self.place_market_sell(
+                state=state, 
+                sym=sym, 
+                max_quantity=trade_size
+            )
                 
 
     def make_logic(self, 
@@ -1153,7 +1274,7 @@ class DataManager:
 
         for obs_name in ["DOLPHIN_SIGHTINGS"]:
             self.add_history_obs(state, obs_name)
-            
+
 
     def add_history_sym(self, state: TradingState, sym: Symbol):
         # add sym to history if not present
@@ -1251,7 +1372,7 @@ class DataManager:
             self.history[obs_name] = []
 
         obs_history = self.history[obs_name]
-        mid = state.observations[obs_history]
+        mid = state.observations[obs_name]
 
         obj = {
             "mid": mid

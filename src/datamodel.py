@@ -419,7 +419,7 @@ class TradingState(object):
             own_trades=own_trades,
             market_trades=market_trades,
             position=position,
-            observations=copy.deepcopy({}),
+            observations=self.observations,
         )
 
         # cleanup state
