@@ -3,13 +3,13 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 1000000
+MAX_TIME = 3000000
 TIME_STEP = 100
 
 # _day_range = [1]
 # _day_range = [-1, 0, 1]
 # _day_range = [0, 1, 2]
-_day_range = [3]
+_day_range = [1, 2, 3]
 
 _time_in_day = 1000000
 _round_num = 4

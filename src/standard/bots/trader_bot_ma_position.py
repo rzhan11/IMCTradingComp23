@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 import json
 import time
 import traceback
@@ -1002,65 +1003,83 @@ class Trader:
 
         # timing constants
         base_trade_rate = 1.6 / 2
-        max_gain, max_loss = 40, -40
-        gain_start, gain_end = 10000 * 1 / 3, 10000 * 1/2
-        loss_start, loss_end = 10000 * 1 / 2, 10000 * 2/3
-        num_gain_days, num_loss_days = gain_end - gain_start, loss_end - loss_start
-        gain_per_day = max_gain / num_gain_days
-        loss_per_day = max_loss / num_loss_days
+        gain_end = 10000 * 1/2
+        loss_end = 10000 * 1
+
+        ## function for expected price
+        exp_params = [ 3.87997198e+03,  1.52237911e+00,  9.15550042e-04, -8.53005765e-01]
+        def _get_expected_rtn(a, b, c, d, s, r, t1, t2, earn_sign):
+            s = s - t1 * r # adjust initial position
+
+            midpoint = gain_end
+
+            # s = initial pos
+            # r = change in pos per turn
+            def int_fun(t):
+                return b * np.exp(c * t + d) * (r * (c * t - 1) + c * s) / c
+            
+            def int_fun_neg(t):
+                return b * np.exp(c * -(t - 2 * midpoint) + d) * (r * (c * t + 1) + c * s) / c
+            
+            if earn_sign > 0:
+                return int_fun(t2) - int_fun(t1)
+            else:
+                return int_fun_neg(t2) - int_fun_neg(t1)
+        
+        # the main function used to calculate opportunity cost
+        opp_cost_fn = lambda s, r, t1, t2, earn_sign : _get_expected_rtn(*exp_params, s, r, t1, t2, earn_sign)
 
         def get_custom_opp_cost():
             # remaining gain time (rem_gain = rem gain per contract)
 
             cur_day = cycle_time * 10000
 
-
             opp_costs = {i: 0 for i in range(-limit, limit + 1)}
 
-            def modify_opp_cost(prd_start, prd_end, earn_per_day):
+            def modify_opp_cost(prd_end, earn_sign):
                 if cur_day >= prd_end:
                     return
+                
+                trade_rate = np.sign(earn_sign) * base_trade_rate
+                target_pos = np.sign(earn_sign) * limit                
 
-                trade_rate = np.sign(earn_per_day) * base_trade_rate
-                target_pos = np.sign(earn_per_day) * limit                
-
-                days_until_gain = max(prd_start - cur_day, 0)
-                best_pos_change = days_until_gain * trade_rate
-
-                rem_gain_days = prd_end - max(prd_start, cur_day)
+                rem_gain_days = prd_end - cur_day
 
                 for start_pos in range(-limit, limit + 1):
-                    exp_pos = max(min(start_pos + best_pos_change, limit), -1 * limit)
-                    exp_pos_miss = target_pos - exp_pos
+                    pos_miss = target_pos - start_pos
 
                     # changing days are # of days during gain period, where we increase our pos
-                    num_change_days = min(rem_gain_days, exp_pos_miss / trade_rate)                    
-                    avg_pos = exp_pos + num_change_days / 2 * trade_rate
+                    num_change_days = min(rem_gain_days, pos_miss / trade_rate)
 
                     # number of days we are at the target pos
-                    max_pos_day = cur_day + days_until_gain + num_change_days
-                    num_max_days = prd_end - max_pos_day
+                    max_pos_day = cur_day + num_change_days
+
+                    # period of p(x) changing
+                    ## from cur_day to max_pos_day
+                    value1 = opp_cost_fn(start_pos, trade_rate, cur_day, max_pos_day, earn_sign)
+
+                    # period of p(x) = target_pos
+                    ## from max_pos_day to prd_end
+                    value2 = opp_cost_fn(target_pos, 0, max_pos_day, prd_end, earn_sign)
 
                     # final value
-                    opp_costs[start_pos] += earn_per_day * (num_max_days * target_pos + num_change_days * avg_pos)
+                    opp_costs[start_pos] += value1 + value2
 
-                    if abs(start_pos) == limit:
-                        print(f"start_pos {start_pos}:", opp_costs[start_pos])
-                        print("ex_pos", exp_pos, exp_pos_miss)
-                        print("num_chg_days", num_change_days, avg_pos)
-                        print("maxed_days", max_pos_day, num_max_days)
+                    # if abs(start_pos) == limit:
+                    #     print(f"start_pos {start_pos}:", opp_costs[start_pos])
+                    #     print("ex_pos", exp_pos, exp_pos_miss)
+                    #     print("num_chg_days", num_change_days, avg_pos)
+                    #     print("maxed_days", max_pos_day, num_max_days)
 
             modify_opp_cost(
-                prd_start=gain_start,
                 prd_end=gain_end,
-                earn_per_day=gain_per_day,
+                earn_sign = 1,
             )
 
             if cur_day >= gain_end:
                 modify_opp_cost(
-                    prd_start=loss_start,
                     prd_end=loss_end,
-                    earn_per_day=loss_per_day,
+                    earn_sign=-1,
                 )
 
             opp_costs = {k: round(v, 1) for k, v in opp_costs.items()}
