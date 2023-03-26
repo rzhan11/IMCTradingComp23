@@ -90,7 +90,6 @@ class TakerBot:
 
             # look at current best buy, potentially sell to them
             buy_book = state.order_depths[symbol].buy_orders
-
             if len(buy_book) > 0:
                 buy_price, buy_quantity = max(buy_book.items())
                 if trade_price < buy_price:
@@ -103,7 +102,7 @@ class TakerBot:
 
             sell_book = state.order_depths[symbol].sell_orders
             if len(sell_book) > 0:
-                sell_price, sell_quantity = max(sell_book.items())
+                sell_price, sell_quantity = min(sell_book.items())
                 if trade_price > sell_price:
                     # buy from their sell order
                     self.place_buy_order(Order(
