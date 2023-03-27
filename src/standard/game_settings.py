@@ -3,7 +3,7 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 50000
+MAX_TIME = 3000000
 TIME_STEP = 100
 
 # _day_range = [1]
@@ -117,7 +117,8 @@ from .bots.taker_bot import TakerBot
 from .bots.maker_bot import MakerBot
 # from .bots.trader_bot import Trader
 # from .bots.trader_bot_ma_dynamic import Trader
-from .bots.trader_bot_ma_position import Trader
+# from .bots.trader_bot_arb import Trader
+from .bots.trader_bot_round4 import Trader
 
 PLAYERS = [
     MakerBot(

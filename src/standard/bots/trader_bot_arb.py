@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import json
 import time
+import copy
 
 from typing import Dict, List, Tuple, Any
 from datamodel import OrderDepth, TradingState, Order, Listing, ProsperityEncoder
@@ -225,6 +226,24 @@ class Trader:
             self.close_positions(state)
             return
 
+
+
+        # setup all_buys / all_sells
+        self.all_buys = {}
+        self.all_sells = {}
+
+        for sym in state.order_depths.keys():
+            book = state.order_depths[sym]
+
+            buys: List[Tuple[Price, Position]] = sorted(list(book.buy_orders.items()), reverse=True)
+            sells: List[Tuple[Price, Position]] = sorted(list(book.sell_orders.items()), reverse=False)
+
+            self.all_buys[sym] = buys            
+            self.all_sells[sym] = sells 
+
+        # copy the original buy/sell books (we may change them on the fly)
+        self.orig_all_buys = copy.deepcopy(self.all_buys)
+        self.orig_all_sells = copy.deepcopy(self.all_sells)
 
 
         # Iterate over all the keys (the available products) contained in the order depths
@@ -738,6 +757,7 @@ class Trader:
             "emas": emas,
             "best_emas": best_emas,
             "best_ema_spans": best_ema_spans,
+            "fair_values": { sym: self.get_fair_value(sym) for sym in self.symbols},
         }
 
 
@@ -746,6 +766,67 @@ class Trader:
         s = json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True)
 
         print(f"__turn_end_start\n{s}\n__turn_end_end")
+
+
+    def get_fair_value(self, sym: Symbol) -> float:
+
+        mid_ema = self.get_ema_mid(sym)
+
+        # get large_quote_mid
+        large_quote_mid, use_large_quote_mid = self.get_large_quote_mid(sym)
+        
+
+        # if conditions were good, use large_quote_mid
+        if use_large_quote_mid:
+            return large_quote_mid
+        else: # else, use ema
+            return mid_ema
+
+
+
+    def get_ema_mid(self, sym: Symbol) -> float:
+        
+        # calc mid_ema
+        sym_history = self.DM.history[sym]
+        mid_ema = sym_history[-1]["best_ema"]
+        # mid_ema_span = sym_history[-1]["best_ema_span"]
+
+        return mid_ema
+
+
+
+
+
+    def get_large_quote_mid(self, sym):
+        """ Checks if we should calculate the fair value using the mid of the order book
+        - Gets the buy and sell orders with the maximum size
+        - Checks if the maximum size is >= 15 for both buy/sell, and checks if the width is from 6 to 8 
+        - If yes, return prices of max size buy/sell from order book, else return None
+        """
+
+
+
+        buys, sells = self.orig_all_buys[sym], self.orig_all_sells[sym]
+        
+        buy_price, buy_size = max(buys, key=lambda x:x[1])
+        sell_price, sell_size = max(sells, key=lambda x:x[1])
+
+        spread = sell_price - buy_price
+        
+        # quote_bounds = WHALE_QUOTE_BOUNDS[sym]
+        # spread_lb, spread_ub = quote_bounds["spread"]
+        # size_lb, size_ub = quote_bounds["size"]
+        # should_use = \
+        #     spread_lb <= spread <= spread_ub and \
+        #     size_lb <= buy_size <= size_ub and \
+        #     size_lb <= sell_size <= size_ub
+        ### always use whale quote bounds
+        should_use = True
+
+        return (buy_price + sell_price) / 2, should_use
+
+
+
 
 
 
@@ -886,7 +967,7 @@ class DataManager:
             "best_ema": new_emas[best_ema_span],
             "best_ema_span": best_ema_span,
             'macd': macd,
-            'highest': high_res
+            'highest': high_res,
         }
         self.history[sym] += [obj]
 
