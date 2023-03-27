@@ -82,7 +82,11 @@ def unreduce_str(s):
         "buy_orders", "sell_orders", 
         "price", "quantity", 
         "symbol", "product", "denomination",
+        "buyer", "seller", "timestamp", "SUBMISSION",
+        "DOLPHIN_SIGHTINGS",
+        "own_trades", "position", "observations", "market_trades", "turn", 
     ]
+    words = [f'"{w}"' for w in words]
     words.sort(key=lambda x:(len(x), x), reverse=True)
 
     convert_list = [ (sym, get_unused_char(i)) for i, sym in enumerate(words) ]

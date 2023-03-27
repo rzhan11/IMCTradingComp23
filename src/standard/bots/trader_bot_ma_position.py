@@ -1384,7 +1384,7 @@ class Trader:
 
         
         # convert obj to 
-        s = json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True)
+        s = json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True, separators=(',', ":"))
         s = self.reduce_str(s)
 
         print(f"__t_s\n{s}\n__t_e")
@@ -1402,7 +1402,11 @@ class Trader:
             "buy_orders", "sell_orders", 
             "price", "quantity", 
             "symbol", "product", "denomination",
+            "buyer", "seller", "timestamp", "SUBMISSION",
+            "DOLPHIN_SIGHTINGS",
+            "own_trades", "position", "observations", "market_trades", "turn", 
         ]
+        words = [f'"{w}"' for w in words]
         words.sort(key=lambda x:(len(x), x), reverse=True)
 
         convert_list = [ (sym, get_unused_char(i)) for i, sym in enumerate(words) ]
