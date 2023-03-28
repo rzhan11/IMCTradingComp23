@@ -490,7 +490,7 @@ class Trader:
                 "COCONUTS": -1.5,
             },
             the_bias=-3000,
-            threshold=12.25 - 0.01,
+            threshold=13.25 - 0.01,
             hedge_margin=5,
         )
 
@@ -505,7 +505,7 @@ class Trader:
                 "UKULELE": -1,
             },
             the_bias=-375,
-            threshold=102.5 - 0.01,
+            threshold=80 - 0.01,
             hedge_margin=5,
         )
 
@@ -521,6 +521,7 @@ class Trader:
         self.take_berries_logic(
             state=state,
             sym="BERRIES",
+            manual_adjust=5,
         )
 
     def get_ema_mid(self, sym: Symbol) -> float:
@@ -617,7 +618,7 @@ class Trader:
         # compute maximum contract position
         limits = [self._position_limits[prod] // abs(the_weights[prod]) for prod in prods]
         max_contract_pos = min(limits)
-        print("max_contract_pos", max_contract_pos, limits)
+        # print("max_contract_pos", max_contract_pos, limits)
 
 
         def get_target_contract_pos(pred_error, cur_pair_pos):
@@ -684,7 +685,7 @@ class Trader:
                     return
                 
                 price, size = book[0]
-                print("price", sym, price)
+                # print("price", sym, price)
 
                 # record the book's top price
                 top_prices[sym] = price
@@ -698,11 +699,11 @@ class Trader:
             # if top_size <= 0:
             #     return
 
-            print("----")
-            print("ARB TAKE", main_sym, weights[main_sym])
-            print("----\n")
+            # print("----")
+            # print("ARB TAKE", main_sym, weights[main_sym])
+            # print("----\n")
 
-            print("contract_value", contract_value)
+            # print("contract_value", contract_value)
 
             cur_contract_pos, _diffs = get_cur_contract_pos(weights)
             target_contract_pos = get_target_contract_pos(contract_value, cur_contract_pos)
@@ -714,26 +715,26 @@ class Trader:
             # and the amt of trades avail at the book top
             contract_trade_size = min(top_size, contract_diff_size)
 
-            print("cur", cur_contract_pos)
-            print("targ", target_contract_pos)
-            print("diff", contract_diff, contract_diff_size)
-            print("c_tradesize", contract_trade_size, top_size)
+            # print("cur", cur_contract_pos)
+            # print("targ", target_contract_pos)
+            # print("diff", contract_diff, contract_diff_size)
+            # print("c_tradesize", contract_trade_size, top_size)
 
             if contract_trade_size <= 0:
-                print("skipping")
+                # print("skipping")
                 return
 
 
             # if we are supposed to buy this contract
             if contract_diff > 0:
 
-                print("I AM TAKING", "-"*50)
+                # print("I AM TAKING", "-"*50)
 
                 # loop through each symbol and place the order
                 for sym in syms:
                     # trade_size is signed
                     trade_size = int(round(contract_trade_size * weights[sym]))
-                    print("TAKING", sym, trade_size, top_prices[sym])
+                    # print("TAKING", sym, trade_size, top_prices[sym])
 
                     # buy
                     if trade_size > 0:
@@ -761,10 +762,10 @@ class Trader:
                 trade_size = abs(diff)
                 if trade_size > hedge_margin:
                     if diff > 0: # we need to buy
-                        print("hedging buy", sym, diff)
+                        # print("hedging buy", sym, diff)
                         trade_func = self.place_market_buy
                     else: # we need to sell
-                        print("hedging sell", sym, diff)
+                        # print("hedging sell", sym, diff)
                         trade_func = self.place_market_sell
                     
                     # place the trade
@@ -981,6 +982,7 @@ class Trader:
     def take_berries_logic(self,
             state: TradingState,
             sym: Symbol,
+            manual_adjust: float,
             ):
         
         """ start of var setup """
@@ -1026,7 +1028,7 @@ class Trader:
                 return int_fun_neg(t2) - int_fun_neg(t1)
         
         # the main function used to calculate opportunity cost
-        opp_cost_fn = lambda s, r, t1, t2, earn_sign : _get_expected_rtn(*exp_params, s, r, t1, t2, earn_sign)
+        opp_cost_fn = lambda s, r, t1, t2, earn_sign : manual_adjust * _get_expected_rtn(*exp_params, s, r, t1, t2, earn_sign)
 
         def get_custom_opp_cost():
             # remaining gain time (rem_gain = rem gain per contract)
