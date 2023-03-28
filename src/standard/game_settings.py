@@ -44,7 +44,7 @@ SYMBOLS = list(LISTINGS.keys())
 """ read csvs into dataframe """
 
 def get_file_trades(day):
-    fname = f"../data/round{_round_num}/trades_round_{_round_num}_day_{day}_nn.csv"
+    fname = f"../data/round5/trades_round_{_round_num}_day_{day}_wn.csv"
     print("fname", fname)
     return pd.read_csv(fname, sep=";")
 
