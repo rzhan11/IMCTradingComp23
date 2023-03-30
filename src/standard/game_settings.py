@@ -3,17 +3,17 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 100000
+MAX_TIME = 3000000
 TIME_STEP = 100
 
-_use_special = True
-_day_range = [1]
+# _use_special = True
+# _day_range = [1]
 
 # _day_range = [1]
 # _day_range = [-1, 0, 1]
 # _day_range = [0, 1, 2]
-# _day_range = [1, 2, 3]
-# _use_special = False
+_day_range = [1, 2, 3]
+_use_special = False
 
 _round_num = 4
 _time_in_day = 1000000
@@ -92,7 +92,7 @@ trade_df = trade_df.reset_index(drop=True)
 price_df = price_df.reset_index(drop=True)
 
 # drop irrelevant columns
-trade_df = trade_df.drop(["currency", "buyer", "seller"], axis=1)
+trade_df = trade_df.drop(["currency"], axis=1)
 price_df = price_df.drop(["profit_and_loss"], axis=1)
 
 # rename columns
@@ -118,7 +118,7 @@ obs_df = price_df[price_df["symbol"].isin(obs_names)][["mid_price", "symbol", "t
 obs_df = obs_df.pivot(index="time", columns="symbol")["mid_price"].astype(int)
 OBSERVATIONS = obs_df.T.to_dict()
 
-
+print(trade_df.columns)
 ## init market_trades
 all_market_trades = {}
 for index, row in trade_df.iterrows():
@@ -135,6 +135,7 @@ for index, row in trade_df.iterrows():
         quantity=row["quantity"], 
         buyer=row["buyer"], 
         seller=row["seller"],
+        timestamp=row["time"],
     )
         
     all_market_trades[time][sym] += [trade]

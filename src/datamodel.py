@@ -144,6 +144,7 @@ class Trade:
         )
 
     def clean(self):
+        print(dir(self), self)
         self.timestamp = self.__timestamp
         del self.__timestamp
         del self.__taker_pid
@@ -378,7 +379,11 @@ class TradingState(object):
 
         # own_trades + market_trades
         own_trades = {sym: [] for sym in self.__symbols}
-        market_trades = {sym: [] for sym in self.__symbols}
+
+        market_trades = {sym: [trade.copy() for trade in trades] for sym, trades in self.market_trades.items()}
+        for sym in self.__symbols:
+            if sym not in market_trades:
+                market_trades[sym] = []
 
         # create own_trades / market_trades
         for trade in self.__trades:

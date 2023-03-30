@@ -608,6 +608,8 @@ class Trader:
 
         ### start of basic vars
         OM = self.OM
+        DM = self.DM
+        
 
 
         syms = list(the_weights.keys())
@@ -615,11 +617,60 @@ class Trader:
         # main_sym should be in syms
         assert main_sym in syms
 
+        ### have some set of excluded symbols for OLI's trades
+        # these will be TOTALLY ignored in the pairs_trading logic
+        oli_syms = {sym: DM.get_recent_trade("Olivia", sym) for sym in syms}
+        oli_syms = {sym: pos for sym, pos in oli_syms.items() if pos != 0}
+
+        if len(oli_syms) > 0:
+            print("oli_syms", oli_syms)
+
+            # if main_sym in oli_syms
+            if main_sym in oli_syms:
+                # go full ham on oli_syms
+                # zero out other positions
+                for sym in syms:
+                    limit = self._position_limits[sym]
+
+                    if sym in oli_syms[sym]:
+                        oli_pos = oli_syms[sym]
+                    else:
+                        oli_pos = 0
+
+                    oli_sign = np.sign(oli_pos)
+                    self.take_to_target_pos(
+                        state,
+                        sym=sym,
+                        target_pos=oli_sign * limit,
+                    )
+                return
+            else:
+                # remove syms from "the_weights"
+                # trade other syms normally...
+                for sym, oli_pos in oli_syms.items():
+                    limit = self._position_limits[sym]
+
+                    del the_weights[sym]
+                    syms.remove(sym)
+                    prods.remove(sym)
+
+                    oli_sign = np.sign(oli_pos)
+                    # trade them fully to oli's direction
+                    self.take_to_target_pos(
+                        state,
+                        sym=sym,
+                        target_pos = oli_sign * limit,
+                    )
+                # don't return
+
+
+
+
         # compute maximum contract position
         limits = [self._position_limits[prod] // abs(the_weights[prod]) for prod in prods]
         max_contract_pos = min(limits)
         # print("max_contract_pos", max_contract_pos, limits)
-
+                
 
         def get_target_contract_pos(pred_error, cur_pair_pos):
 
@@ -1422,11 +1473,38 @@ class DataManager:
         for obs_name in ["DOLPHIN_SIGHTINGS"]:
             self.add_history_obs(state, obs_name)
 
-        self.add_party_hist(state)
+        self.add_party_hist(state, symbols)
 
-    def add_party_hist(self, state: TradingState):
-        # for 
-        pass
+    def add_party_hist(self, state: TradingState, symbols: List[Symbol]):
+        party_hist = self.party_hist
+
+        # loop through symbols
+        for sym, trades in state.market_trades.items():
+            # loop through trades
+            for trade in trades:
+                # add buyer's most recent trade
+                if trade.buyer not in party_hist:
+                    party_hist[trade.buyer] = {}
+                party_hist[trade.buyer][sym] = +1 * trade.quantity
+
+                # add seller's most recent trade
+                if trade.seller not in party_hist:
+                    party_hist[trade.seller] = {}
+                party_hist[trade.seller][sym] = -1 * trade.quantity
+
+
+    def get_recent_trade(self, party: str, sym: Symbol):
+        party_hist = self.party_hist
+        # if party isn't here
+        if party not in party_hist:
+            return 0
+        # or if they haven't traded the product
+        if sym not in party_hist[party]:
+            return 0
+        
+        return party_hist[party][sym]
+
+
 
 
     def add_history_sym(self, state: TradingState, sym: Symbol):
