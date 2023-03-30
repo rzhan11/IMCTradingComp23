@@ -622,6 +622,8 @@ class Trader:
         oli_syms = {sym: DM.get_recent_trade("Olivia", sym) for sym in syms}
         oli_syms = {sym: pos for sym, pos in oli_syms.items() if pos != 0}
 
+        oli_syms = {}
+
         if len(oli_syms) > 0:
             print("oli_syms", oli_syms)
 
@@ -649,10 +651,6 @@ class Trader:
                 # trade other syms normally...
                 for sym, oli_pos in oli_syms.items():
                     limit = self._position_limits[sym]
-
-                    del the_weights[sym]
-                    syms.remove(sym)
-                    prods.remove(sym)
 
                     oli_sign = np.sign(oli_pos)
                     # trade them fully to oli's direction
@@ -724,6 +722,7 @@ class Trader:
             top_prices = {}
 
             for sym in syms:
+
                 if weights[sym] > 0: # we buy from sellers
                     book = self.all_sells[sym]
                     limit = OM.get_rem_buy_size(state, sym)
@@ -736,7 +735,12 @@ class Trader:
                     return
                 
                 price, size = book[0]
-                # print("price", sym, price)
+                # tally price
+                contract_value += price * weights[sym]
+
+                # skip oli_syms
+                if sym in oli_syms:
+                    continue
 
                 # record the book's top price
                 top_prices[sym] = price
@@ -744,8 +748,6 @@ class Trader:
                 # how much of the contract can we trade at book top
                 top_size = min(top_size, min(limit, size) / abs(weights[sym]))
 
-                # tally price
-                contract_value += price * weights[sym]
 
             # if top_size <= 0:
             #     return
@@ -783,6 +785,10 @@ class Trader:
 
                 # loop through each symbol and place the order
                 for sym in syms:
+                    # ignore sym here
+                    if sym in oli_syms:
+                        continue
+
                     # trade_size is signed
                     trade_size = int(round(contract_trade_size * weights[sym]))
                     # print("TAKING", sym, trade_size, top_prices[sym])
@@ -809,6 +815,11 @@ class Trader:
             cur_contract_pos, diffs = get_cur_contract_pos(weights)
 
             for sym in syms:
+                # ignore sym here
+                if sym in oli_syms:
+                    continue
+
+                
                 diff = diffs[sym]
                 trade_size = abs(diff)
                 if trade_size > hedge_margin:
