@@ -307,6 +307,10 @@ class Trader:
         self.gear_target = 0
 
 
+        self.oli_pos = {}
+        self.hold_oli = 0
+
+
     def turn_start(self, state: TradingState):
         # measure time
         self.wall_start_time = time.time()
@@ -429,6 +433,27 @@ class Trader:
         #     self.close_positions(state)
         #     return
 
+        ### instantiate oli pos
+        if self.hold_oli>0:
+            self.hold_oli-=1
+        self.oli_target={'BANANAS','BERRIES','UKULELE',}
+
+        # setup syms for oli_pos
+        for sym in self.symbols:
+            if sym not in self.oli_pos:
+                self.oli_pos[sym] = 0
+
+        oli_last = copy.deepcopy(self.oli_pos)
+
+        for sym in state.market_trades.keys():
+            market=state.market_trades[sym]
+            for trade in market:
+                if trade.buyer=='Olivia':
+                    self.oli_pos[sym]+= trade.quantity
+                if trade.seller=='Olivia':
+                    self.oli_pos[sym]-= trade.quantity
+
+
         # setup all_buys / all_sells
         self.all_buys = {}
         self.all_sells = {}
@@ -470,6 +495,31 @@ class Trader:
                     fair_value=fair_value,
                 )
             
+            ## BERRIES LOGIC
+            if sym == "BERRIES":
+                if self.oli_pos[sym]==0 and oli_last[sym]==0 and self.hold_oli==0:
+                    print("hi1")
+                    self.take_berries_logic(
+                    state=state,
+                    sym=sym,
+                    manual_adjust=5,
+                    )
+                elif self.oli_pos[sym]<0 and oli_last[sym]>=0:
+                    print("hi2")
+                    self.place_market_sell_max( state, sym, 500)
+                elif self.oli_pos[sym]>0 and oli_last[sym]<=0:
+                    print("hi3")
+                    self.place_market_buy_max(state, sym, 500)
+                elif self.oli_pos[sym]==0 and oli_last[sym]>=0:
+                    print("hi4")
+                    self.place_market_sell_max( state, sym, 500)
+                    self.hold_oli=50
+                elif self.oli_pos[sym]==0 and oli_last[sym]<=0:
+                    print("hi5")
+                    self.place_market_buy_max( state, sym, 500)
+                    self.hold_oli=50
+                else:
+                    continue
             # macd logic
             # if sym in ["DIVING_GEAR"]:
             #     self.macd_logic(
@@ -518,11 +568,11 @@ class Trader:
         )
 
         # round 3
-        self.take_berries_logic(
-            state=state,
-            sym="BERRIES",
-            manual_adjust=5,
-        )
+        # self.take_berries_logic(
+        #     state=state,
+        #     sym="BERRIES",
+        #     manual_adjust=5,
+        # )
 
     def get_ema_mid(self, sym: Symbol) -> float:
         
@@ -595,6 +645,38 @@ class Trader:
                 quantity=min([limit, quantity, max_quantity]),
                 is_take=True,
             )
+
+    def place_market_buy_max(self, state: TradingState, sym: Symbol, max_quantity: int):
+        price, quantity = self.get_best_sell_order(sym)
+        marketp=self.orig_all_sells[sym][-1][0]
+        # we are buying
+        limit = self.OM.get_rem_buy_size(state, sym)
+        if limit <= 0:
+            return
+
+        if price is not None:
+            self.OM.place_buy_order(
+                symbol=sym,
+                price=marketp,
+                quantity=min([limit, max_quantity]),
+                is_take=True,
+            )
+
+    def place_market_sell_max(self, state: TradingState, sym: Symbol, max_quantity: int):
+        price, quantity = self.get_best_buy_order(sym)
+        marketp=self.orig_all_buys[sym][-1][0]
+        # we are selling
+        limit = self.OM.get_rem_sell_size(state, sym)
+        if limit <= 0:
+            return
+
+        if price is not None:
+            self.OM.place_sell_order(
+                symbol=sym,
+                price=marketp,
+                quantity=min([limit, max_quantity]),
+                is_take=True,
+            )
                     
 
     def pairs_trading_logic(self, 
@@ -622,7 +704,7 @@ class Trader:
         oli_syms = {sym: DM.get_recent_trade("Olivia", sym) for sym in syms}
         oli_syms = {sym: pos for sym, pos in oli_syms.items() if pos != 0}
 
-        oli_syms = {}
+        # oli_syms = {}
 
         if len(oli_syms) > 0:
             print("oli_syms", oli_syms)
@@ -997,6 +1079,25 @@ class Trader:
 
         max_position_limit = self._position_limits[sym]
         """ end of var setup """
+
+        if state.timestamp == 600000:
+            self.DM.party_hist["Olivia"]["GEAR_LOGIC"] = 1
+        elif state.timestamp== 1000000:
+            self.DM.party_hist["Olivia"]["GEAR_LOGIC"] = -1
+
+        oli_pos = self.DM.get_recent_trade("Olivia", sym)
+        if oli_pos != 0:
+            limit = self._position_limits[sym]
+            oli_sign = np.sign(oli_pos)
+            self.take_to_target_pos(
+                state,
+                sym=sym,
+                target_pos=oli_sign * limit,
+            )
+            return
+
+
+        
 
         # if we don't have a gear target, don't try to change our position
         if not self.has_gear_target:
