@@ -434,11 +434,11 @@ class Trader:
                 )
             if sym ==' BERRIES':
                 if self.oli_pos[sym]==0 and oli_last[sym]==0 and self.hold_oli==0:
-                    self.make_logic(
+                    self.take_berries_logic(
                     state=state,
-                    sym=sym,
-                    fair_value=fair_value,
-                )
+                    sym="BERRIES",
+                    manual_adjust=5,
+                    )
                 elif self.oli_pos[sym]<0 and oli_last[sym]>=0:
                     self.place_market_sell( state, sym, 500)
                 elif self.oli_pos[sym]>0 and oli_last[sym]<=0:
@@ -542,7 +542,7 @@ class Trader:
 
     def place_market_buy(self, state: TradingState, sym: Symbol, max_quantity: int):
         price, quantity = self.get_best_sell_order(sym)
-
+        marketp=self.orig_all_sells[sym][-1][0]
         # we are buying
         limit = self.OM.get_rem_buy_size(state, sym)
         if limit <= 0:
@@ -551,14 +551,14 @@ class Trader:
         if price is not None:
             self.OM.place_buy_order(
                 symbol=sym,
-                price=price,
-                quantity=min([limit, quantity, max_quantity]),
+                price=marketp,
+                quantity=min([limit, max_quantity]),
                 is_take=True,
             )
 
     def place_market_sell(self, state: TradingState, sym: Symbol, max_quantity: int):
         price, quantity = self.get_best_buy_order(sym)
-
+        marketp=self.orig_all_buys[sym][-1][0]
         # we are selling
         limit = self.OM.get_rem_sell_size(state, sym)
         if limit <= 0:
@@ -567,8 +567,8 @@ class Trader:
         if price is not None:
             self.OM.place_sell_order(
                 symbol=sym,
-                price=price,
-                quantity=min([limit, quantity, max_quantity]),
+                price=marketp,
+                quantity=min([limit, max_quantity]),
                 is_take=True,
             )
                     
