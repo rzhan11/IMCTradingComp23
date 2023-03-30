@@ -31,6 +31,9 @@ def main(package: str):
         observations={},
     )
 
+    ## get market_trades
+    MARKET_TRADES = GS.MARKET_TRADES
+
     state.init_game(
         products=GS.PRODUCTS,
         symbols=GS.SYMBOLS,
@@ -52,6 +55,11 @@ def main(package: str):
 
         # update observations
         state.observations = GS.OBSERVATIONS[cur_time]
+
+        if cur_time in MARKET_TRADES:
+            state.market_trades = MARKET_TRADES[cur_time]
+        else:
+            state.market_trades = {}
 
         # every player does their actions
         for player in GS.PLAYERS:

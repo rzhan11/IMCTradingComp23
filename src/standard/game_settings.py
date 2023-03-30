@@ -3,7 +3,7 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 1000000
+MAX_TIME = 100000
 TIME_STEP = 100
 
 _use_special = True
@@ -74,8 +74,6 @@ else:
         prices += [price_df]
     price_df = pd.concat(prices)
 
-print(price_df)
-
 trades = []
 for day in _day_range:
     # get data from files
@@ -120,6 +118,28 @@ obs_df = price_df[price_df["symbol"].isin(obs_names)][["mid_price", "symbol", "t
 obs_df = obs_df.pivot(index="time", columns="symbol")["mid_price"].astype(int)
 OBSERVATIONS = obs_df.T.to_dict()
 
+
+## init market_trades
+all_market_trades = {}
+for index, row in trade_df.iterrows():
+    time = row["time"]
+    sym = row["symbol"]
+    if time not in all_market_trades:
+        all_market_trades[time] = {}
+    if sym not in all_market_trades[time]:
+        all_market_trades[time][sym] = []
+    
+    trade = Trade(
+        symbol=row["symbol"],
+        price=row["price"], 
+        quantity=row["quantity"], 
+        buyer=row["buyer"], 
+        seller=row["seller"],
+    )
+        
+    all_market_trades[time][sym] += [trade]
+    
+MARKET_TRADES = all_market_trades
 
 
 """ player parameters """

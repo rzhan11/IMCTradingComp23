@@ -1405,6 +1405,8 @@ class DataManager:
 
         self.history = {}
 
+        self.party_hist = {}
+
 
     def add_history(self, state: TradingState, symbols: List[Symbol], products: List[Product]):
         """
@@ -1419,6 +1421,12 @@ class DataManager:
 
         for obs_name in ["DOLPHIN_SIGHTINGS"]:
             self.add_history_obs(state, obs_name)
+
+        self.add_party_hist(state)
+
+    def add_party_hist(self, state: TradingState):
+        # for 
+        pass
 
 
     def add_history_sym(self, state: TradingState, sym: Symbol):

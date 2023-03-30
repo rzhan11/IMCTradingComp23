@@ -42,10 +42,6 @@ class Fair:
     # update fair values based on the mid price
     def update_mid_price(self, timestamp, prod):
 
-        print(prod, timestamp)
-        print(self.all_fairs.keys())
-        print(self.all_fairs[prod].keys())
-
         self.value[prod] = self.all_fairs[prod][timestamp]
 
 
