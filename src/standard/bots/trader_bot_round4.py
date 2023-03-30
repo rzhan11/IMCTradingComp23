@@ -307,9 +307,6 @@ class Trader:
         self.gear_target = 0
 
 
-        self.oli_pos = {}
-        self.hold_oli = 0
-
 
     def turn_start(self, state: TradingState):
         # measure time
@@ -434,24 +431,6 @@ class Trader:
         #     return
 
         ### instantiate oli pos
-        if self.hold_oli>0:
-            self.hold_oli-=1
-        self.oli_target={'BANANAS','BERRIES','UKULELE',}
-
-        # setup syms for oli_pos
-        for sym in self.symbols:
-            if sym not in self.oli_pos:
-                self.oli_pos[sym] = 0
-
-        oli_last = copy.deepcopy(self.oli_pos)
-
-        for sym in state.market_trades.keys():
-            market=state.market_trades[sym]
-            for trade in market:
-                if trade.buyer=='Olivia':
-                    self.oli_pos[sym]+= trade.quantity
-                if trade.seller=='Olivia':
-                    self.oli_pos[sym]-= trade.quantity
 
 
         # setup all_buys / all_sells
@@ -494,40 +473,6 @@ class Trader:
                     sym=sym,
                     fair_value=fair_value,
                 )
-            
-            ## BERRIES LOGIC
-            if sym == "BERRIES":
-                if self.oli_pos[sym]==0 and oli_last[sym]==0 and self.hold_oli==0:
-                    print("hi1")
-                    self.take_berries_logic(
-                    state=state,
-                    sym=sym,
-                    manual_adjust=5,
-                    )
-                elif self.oli_pos[sym]<0 and oli_last[sym]>=0:
-                    print("hi2")
-                    self.place_market_sell_max( state, sym, 500)
-                elif self.oli_pos[sym]>0 and oli_last[sym]<=0:
-                    print("hi3")
-                    self.place_market_buy_max(state, sym, 500)
-                elif self.oli_pos[sym]==0 and oli_last[sym]>=0:
-                    print("hi4")
-                    self.place_market_sell_max( state, sym, 500)
-                    self.hold_oli=50
-                elif self.oli_pos[sym]==0 and oli_last[sym]<=0:
-                    print("hi5")
-                    self.place_market_buy_max( state, sym, 500)
-                    self.hold_oli=50
-                else:
-                    continue
-            # macd logic
-            # if sym in ["DIVING_GEAR"]:
-            #     self.macd_logic(
-            #         state=state,
-            #         sym=sym,
-            #         fair_value=fair_value,
-            #         ema=mid_ema,
-            #     )
 
                     
 
@@ -568,11 +513,11 @@ class Trader:
         )
 
         # round 3
-        # self.take_berries_logic(
-        #     state=state,
-        #     sym="BERRIES",
-        #     manual_adjust=5,
-        # )
+        self.take_berries_logic(
+            state=state,
+            sym="BERRIES",
+            manual_adjust=5,
+        )
 
     def get_ema_mid(self, sym: Symbol) -> float:
         
@@ -988,6 +933,14 @@ class Trader:
             OPP_COST = custom_opp_cost
 
 
+        # add OLI effect
+        oli_pos = self.DM.get_recent_trade("Olivia", sym)
+        if oli_pos != 0:
+            oli_sign = np.sign(oli_pos)
+            oli_amt = 1 * oli_sign
+            OPP_COST = {k: v + k * oli_amt for k, v in OPP_COST.items()}
+
+
         # take orders on buy_side (we sell to existing buy orders)
         for index, (price, quantity) in enumerate(buys):
             cur_pos = OM.get_expected_pos(state, prod)
@@ -1079,11 +1032,6 @@ class Trader:
 
         max_position_limit = self._position_limits[sym]
         """ end of var setup """
-
-        if state.timestamp == 600000:
-            self.DM.party_hist["Olivia"]["GEAR_LOGIC"] = 1
-        elif state.timestamp== 1000000:
-            self.DM.party_hist["Olivia"]["GEAR_LOGIC"] = -1
 
         oli_pos = self.DM.get_recent_trade("Olivia", sym)
         if oli_pos != 0:
@@ -1322,6 +1270,13 @@ class Trader:
         ### special case for bananas
         if custom_opp_cost is not None:
             OPP_COST = custom_opp_cost
+
+        # add OLI effect
+        oli_pos = self.DM.get_recent_trade("Olivia", sym)
+        if oli_pos != 0:
+            oli_sign = np.sign(oli_pos)
+            oli_amt = 1 * oli_sign
+            OPP_COST = {k: v + k * oli_amt for k, v in OPP_COST.items()}
 
 
         for price, quantity in buys:
