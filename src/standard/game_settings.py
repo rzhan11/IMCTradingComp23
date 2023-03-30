@@ -3,16 +3,20 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 3000000
+MAX_TIME = 1000000
 TIME_STEP = 100
+
+_use_special = True
+_day_range = [1]
 
 # _day_range = [1]
 # _day_range = [-1, 0, 1]
 # _day_range = [0, 1, 2]
-_day_range = [1, 2, 3]
+# _day_range = [1, 2, 3]
+# _use_special = False
 
-_time_in_day = 1000000
 _round_num = 4
+_time_in_day = 1000000
 
 trader_position_limits : Dict[Product, int] = {
     "BANANAS": 20,
@@ -43,6 +47,12 @@ SYMBOLS = list(LISTINGS.keys())
 
 """ read csvs into dataframe """
 
+def get_special():
+    fname = f"../data/round4-result.csv"
+    df = pd.read_csv(fname, sep=";")
+    df["day"] = _day_range[0]
+    return df
+
 def get_file_trades(day):
     fname = f"../data/round5/trades_round_{_round_num}_day_{day}_wn.csv"
     print("fname", fname)
@@ -53,23 +63,31 @@ def get_file_prices(day):
     print("fname", fname)
     return pd.read_csv(fname, sep=";")
 
-trades = []
-prices = []
 
+
+if _use_special:
+    price_df = get_special()
+else:
+    prices = []
+    for day in _day_range:
+        price_df = get_file_prices(day)
+        prices += [price_df]
+    price_df = pd.concat(prices)
+
+print(price_df)
+
+trades = []
 for day in _day_range:
     # get data from files
     trade_df = get_file_trades(day)
-    price_df = get_file_prices(day)
-    
     trade_df["day"] = day
-    
     trades += [trade_df]
-    prices += [price_df]
-
 
 # concat all data
 trade_df = pd.concat(trades)
-price_df = pd.concat(prices)
+
+if _use_special:
+    trade_df = pd.DataFrame([], columns=trade_df.columns)
 
 # reset indexes
 trade_df = trade_df.reset_index(drop=True)
