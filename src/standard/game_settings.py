@@ -3,17 +3,17 @@ import pandas as pd
 
 """ constants """
 
-MAX_TIME = 3000000
+MAX_TIME = 1000000
 TIME_STEP = 100
 
-# _use_special = True
-# _day_range = [1]
+_use_special = True
+_day_range = [1]
 
 # _day_range = [1]
 # _day_range = [-1, 0, 1]
 # _day_range = [0, 1, 2]
-_day_range = [1, 2, 3]
-_use_special = False
+#_day_range = [1, 2, 3]
+#_use_special = False
 
 _round_num = 4
 _time_in_day = 1000000
@@ -48,7 +48,7 @@ SYMBOLS = list(LISTINGS.keys())
 """ read csvs into dataframe """
 
 def get_special():
-    fname = f"../data/round4-result.csv"
+    fname = f"../data/round5/prices_round_6_day_5.csv"
     df = pd.read_csv(fname, sep=";")
     df["day"] = _day_range[0]
     return df
@@ -110,6 +110,7 @@ price_df["time"] = price_df["time"] + (price_df["day"] - min(_day_range)) * _tim
 price_df = price_df.rename({col: col.replace("bid", "buy") for col in price_df.columns if "bid" in col}, axis=1)
 price_df = price_df.rename({col: col.replace("ask", "sell") for col in price_df.columns if "ask" in col}, axis=1)
 
+trade_df = trade_df.iloc[0:0]
 
 
 ## init observations
